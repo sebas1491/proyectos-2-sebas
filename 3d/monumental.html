@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadio Mâs Monumental - Césped Profesional</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #a0d8ef; font-family: 'Segoe UI', sans-serif; }
+        #overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #222;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 8px solid #e30613;
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+        #controls-ui {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            z-index: 10;
+            display: flex;
+            gap: 12px;
+        }
+        button {
+            background: #e30613;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        button:hover { background: #c10510; transform: translateY(-2px); }
+        #loader {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; display: flex; flex-direction: column; justify-content: center;
+            align-items: center; color: #333; z-index: 1000;
+        }
+        .spinner {
+            width: 60px; height: 60px; border: 6px solid #f3f3f3; border-top: 6px solid #e30613;
+            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="font-weight: bold; letter-spacing: 1px;">OPTIMIZANDO CÉSPED HÍBRIDO...</p>
+    </div>
+    
+    <div id="overlay">
+        <h1 style="margin:0; font-size: 1.8rem; font-weight: 900;">MÂS MONUMENTAL</h1>
+        <p style="margin: 5px 0 0; font-size: 14px; color: #666;">Césped Híbrido Premium | Uniones Mejoradas</p>
+    </div>
+
+    <div id="controls-ui">
+        <button onclick="resetCamera()">🎥 General</button>
+        <button onclick="droneView()">🛸 Dron</button>
+    </div>
+
+    <script>
+        let scene, camera, renderer, controls;
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xa0d8ef);
+            scene.fog = new THREE.Fog(0xa0d8ef, 500, 2000);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000);
+            resetCamera();
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Iluminación
+            scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+            const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+            sun.position.set(150, 400, 100);
+            sun.castShadow = true;
+            sun.shadow.mapSize.width = 4096;
+            sun.shadow.mapSize.height = 4096;
+            sun.shadow.camera.left = -300;
+            sun.shadow.camera.right = 300;
+            sun.shadow.camera.top = 300;
+            sun.shadow.camera.bottom = -300;
+            scene.add(sun);
+
+            createSky();
+            createStadium();
+            
+            document.getElementById('loader').style.display = 'none';
+            animate();
+        }
+
+        function createSky() {
+            const cloudGeo = new THREE.SphereGeometry(15, 8, 8);
+            const cloudMat = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.5});
+            for(let i=0; i<20; i++) {
+                const cloud = new THREE.Group();
+                for(let j=0; j<3; j++) {
+                    const p = new THREE.Mesh(cloudGeo, cloudMat);
+                    p.position.set(j*10, Math.random()*5, Math.random()*5);
+                    cloud.add(p);
+                }
+                cloud.position.set((Math.random()-0.5)*1800, 350, (Math.random()-0.5)*1800);
+                scene.add(cloud);
+            }
+        }
+
+        function createStadium() {
+            const stadium = new THREE.Group();
+
+            // 1. CAMPO DE JUEGO PROFESIONAL
+            const pitchGroup = new THREE.Group();
+            
+            const grassCanvas = document.createElement('canvas');
+            grassCanvas.width = 1024; grassCanvas.height = 1024;
+            const gCtx = grassCanvas.getContext('2d');
+            
+            gCtx.fillStyle = '#1b5e20';
+            gCtx.fillRect(0, 0, 1024, 1024);
+
+            const stripes = 14;
+            for(let i=0; i<stripes; i++) {
+                const x = i * (1024/stripes);
+                const gradient = gCtx.createLinearGradient(x, 0, x + (1024/stripes), 0);
+                if (i % 2 === 0) {
+                    gradient.addColorStop(0, '#236b28');
+                    gradient.addColorStop(0.5, '#2e7d32');
+                    gradient.addColorStop(1, '#236b28');
+                } else {
+                    gradient.addColorStop(0, '#1b5e20');
+                    gradient.addColorStop(0.5, '#236b28');
+                    gradient.addColorStop(1, '#1b5e20');
+                }
+                gCtx.fillStyle = gradient;
+                gCtx.fillRect(x, 0, 1024/stripes, 1024);
+            }
+
+            const grassTex = new THREE.CanvasTexture(grassCanvas);
+            const grassMat = new THREE.MeshStandardMaterial({ map: grassTex, roughness: 0.95 });
+            const grass = new THREE.Mesh(new THREE.PlaneGeometry(105, 70), grassMat);
+            grass.rotation.x = -Math.PI / 2;
+            grass.receiveShadow = true;
+            pitchGroup.add(grass);
+
+            const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 });
+            const drawL = (w, h, x, z, r = 0) => {
+                const l = new THREE.Mesh(new THREE.PlaneGeometry(w, h), lineMat);
+                l.rotation.x = -Math.PI/2; l.rotation.z = r;
+                l.position.set(x, 0.05, z); pitchGroup.add(l);
+            };
+
+            drawL(0.4, 70, 0, 0); 
+            drawL(105.4, 0.4, 0, 35); 
+            drawL(105.4, 0.4, 0, -35); 
+            drawL(0.4, 70.4, 52.5, 0); 
+            drawL(0.4, 70.4, -52.5, 0); 
+
+            const centerCircle = new THREE.Mesh(new THREE.TorusGeometry(9.15, 0.15, 2, 64), lineMat);
+            centerCircle.rotation.x = -Math.PI/2; centerCircle.position.y = 0.05;
+            pitchGroup.add(centerCircle);
+            drawL(0.5, 0.5, 0, 0);
+
+            const drawAreas = (side) => {
+                const x = side * 52.5;
+                const dir = -side;
+                drawL(16.5, 0.3, x + (dir*8.25), 20.15);
+                drawL(16.5, 0.3, x + (dir*8.25), -20.15);
+                drawL(0.3, 40.3, x + (dir*16.5), 0);
+                drawL(5.5, 0.3, x + (dir*2.75), 9.15);
+                drawL(5.5, 0.3, x + (dir*2.75), -9.15);
+                drawL(0.3, 18.3, x + (dir*5.5), 0);
+                drawL(0.4, 0.4, x + (dir*11), 0);
+                const arc = new THREE.Mesh(new THREE.TorusGeometry(9.15, 0.15, 2, 32, Math.PI * 0.4), lineMat);
+                arc.rotation.x = -Math.PI/2; 
+                arc.rotation.z = side > 0 ? Math.PI * 0.8 : -Math.PI * 0.2;
+                arc.position.set(x + (dir*11), 0.05, 0);
+                pitchGroup.add(arc);
+            };
+            drawAreas(1); drawAreas(-1);
+
+            stadium.add(pitchGroup);
+
+            // 2. TRIBUNAS CON UNIONES MEJORADAS
+            function createRing(rx, rz, width, height, yPos, color, hasTransition = false) {
+                const group = new THREE.Group();
+                const sectors = [
+                    { s: 0.05, e: 1.52 }, { s: 1.62, e: 3.09 }, 
+                    { s: 3.19, e: 4.66 }, { s: 4.76, e: 6.23 }
+                ];
+
+                sectors.forEach(angle => {
+                    const shape = new THREE.Shape();
+                    const segs = 64;
+                    const innerRX = rx - width;
+                    const innerRZ = rz - (width * (rz/rx));
+
+                    for (let i = 0; i <= segs; i++) {
+                        const a = angle.s + (i / segs) * (angle.e - angle.s);
+                        shape[i === 0 ? 'moveTo' : 'lineTo'](Math.cos(a) * rx, Math.sin(a) * rz);
+                    }
+                    for (let i = segs; i >= 0; i--) {
+                        const a = angle.s + (i / segs) * (angle.e - angle.s);
+                        shape.lineTo(Math.cos(a) * innerRX, Math.sin(a) * innerRZ);
+                    }
+
+                    const ext = { depth: height, bevelEnabled: true, bevelThickness: 0.3, bevelSize: 0.3 };
+                    const mesh = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, ext), new THREE.MeshStandardMaterial({color: color, roughness: 0.8}));
+                    mesh.rotation.x = -Math.PI / 2;
+                    mesh.position.y = yPos;
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    group.add(mesh);
+
+                    // MEJORA: Añadir un muro vertical de transición si se requiere para cerrar huecos horizontales
+                    if(hasTransition) {
+                        const wallShape = new THREE.Shape();
+                        for (let i = 0; i <= segs; i++) {
+                            const a = angle.s + (i / segs) * (angle.e - angle.s);
+                            wallShape[i === 0 ? 'moveTo' : 'lineTo'](Math.cos(a) * innerRX, Math.sin(a) * innerRZ);
+                        }
+                        // Grosor pequeño para el muro
+                        for (let i = segs; i >= 0; i--) {
+                            const a = angle.s + (i / segs) * (angle.e - angle.s);
+                            wallShape.lineTo(Math.cos(a) * (innerRX - 0.5), Math.sin(a) * (innerRZ - 0.5));
+                        }
+                        const wallMesh = new THREE.Mesh(
+                            new THREE.ExtrudeGeometry(wallShape, {depth: 6, bevelEnabled: false}), 
+                            new THREE.MeshStandardMaterial({color: 0xcccccc})
+                        );
+                        wallMesh.rotation.x = -Math.PI / 2;
+                        wallMesh.position.y = yPos - 6; // Baja desde la base del anillo actual
+                        group.add(wallMesh);
+                    }
+                });
+                return group;
+            }
+
+            // Bandeja Baja (Blanca)
+            stadium.add(createRing(72, 57, 12, 8, 0, 0xffffff));   
+            
+            // Bandeja Media (Roja) - Con transición para cerrar la unión con la baja
+            // Se sube ligeramente para que la base toque el tope de la anterior
+            stadium.add(createRing(85, 70, 15, 10, 8, 0xe30613, true));  
+            
+            // Bandeja Alta (Blanca) - Con transición para cerrar la unión con la media
+            stadium.add(createRing(110, 90, 25, 15, 18, 0xffffff, true)); 
+
+            // 3. ESTRUCTURA EXTERIOR
+            const colMat = new THREE.MeshStandardMaterial({color: 0xbbbbbb, roughness: 0.7});
+            for(let i=0; i<48; i++) {
+                const a = (i/48) * Math.PI * 2;
+                const isGap = (a > 1.52 && a < 1.62) || (a > 3.09 && a < 3.19) || (a > 4.66 && a < 4.76) || (a > 6.23 || a < 0.05);
+                if(!isGap) {
+                    const col = new THREE.Mesh(new THREE.BoxGeometry(3, 33, 5), colMat);
+                    col.position.set(Math.cos(a) * 108, 16.5, Math.sin(a) * 88);
+                    col.lookAt(0, 16.5, 0);
+                    col.castShadow = true;
+                    stadium.add(col);
+                }
+            }
+
+            scene.add(stadium);
+
+            // 4. SUELO EXTERIOR
+            const floor = new THREE.Mesh(
+                new THREE.CircleGeometry(1000, 64),
+                new THREE.MeshStandardMaterial({ color: 0x388e3c, roughness: 1 })
+            );
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -0.15;
+            floor.receiveShadow = true;
+            scene.add(floor);
+        }
+
+        function resetCamera() {
+            camera.position.set(280, 200, 300);
+            if(controls) controls.target.set(0, 0, 0);
+        }
+
+        function droneView() {
+            camera.position.set(0, 480, 20);
+            if(controls) controls.target.set(0, 0, 0);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if(controls) controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.onload = init;
+        window.onresize = () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
+    </script>
+</body>
+</html>
