@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyectos de Seba</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --accent: #10b981;
+            --bg: #0f172a;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: #f8fafc;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Fondo de imagen translúcido */
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background-image: url('https://img.freepik.com/vector-gratis/fondo-controlador-videojuego-linea-espacio-texto_1017-54747.jpg?semt=ais_hybrid&w=740&q=80');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+        }
+
+        /* Gradiente de malla */
+        .mesh-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+        }
+
+        /* Cuadro de título translúcido */
+        .title-box {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 2rem;
+            border-radius: 24px;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Tarjetas de proyecto */
+        .project-card {
+            position: relative;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            aspect-ratio: 16 / 10;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            border-color: var(--primary);
+            box-shadow: 0 15px 30px -10px rgba(59, 130, 246, 0.3);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .project-card:hover .card-image {
+            transform: scale(1.1);
+        }
+
+        .card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.2) 50%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1rem;
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 1rem;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Navegación */
+        .nav-container {
+            background: rgba(30, 41, 59, 0.6);
+            padding: 4px;
+            border-radius: 14px;
+            display: inline-flex;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .nav-btn {
+            padding: 8px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .nav-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .section-content {
+            display: none;
+            animation: slideUp 0.5s ease forwards;
+        }
+
+        .section-content.active {
+            display: grid;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glitch-title {
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="bg-overlay"></div>
+    <div class="mesh-gradient"></div>
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header ajustado más arriba -->
+        <header class="text-center mt-2">
+            <div class="title-box">
+                <h1 class="text-3xl md:text-5xl mb-1 glitch-title">Proyectos de Seba</h1>
+                <p class="text-slate-300 font-light text-xs md:text-sm opacity-80">
+                    Directorio de creaciones interactivas y visualizaciones.
+                </p>
+            </div>
+        </header>
+
+        <!-- Navegación -->
+        <nav class="flex justify-center mb-8">
+            <div class="nav-container">
+                <button onclick="switchTab('juegos', this)" class="nav-btn active">Juegos</button>
+                <button onclick="switchTab('objetos', this)" class="nav-btn">Objetos 3D</button>
+            </div>
+        </nav>
+
+        <!-- Contenido Juegos -->
+        <main id="juegos" class="section-content active grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <a href="https://sebas1491.github.io/superliga-argentina/" target="_blank" class="project-card">
+                <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800" alt="Superliga" class="card-image">
+                <div class="card-overlay">
+                    <h2 class="card-title">Superliga Argentina</h2>
+                </div>
+            </a>
+            <a href="https://sebas1491.github.io/proyectos-2-sebas/juegos/metegol-lpf.html" target="_blank" class="project-card">
+                <img src="https://images.unsplash.com/photo-1511886929837-354d827aae26?auto=format&fit=crop&q=80&w=800" alt="Metegol" class="card-image">
+                <div class="card-overlay">
+                    <h2 class="card-title">Metegol LPF</h2>
+                </div>
+            </a>
+        </main>
+
+        <!-- Contenido Objetos 3D -->
+        <main id="objetos" class="section-content grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <a href="https://sebas1491.github.io/proyectos-2-sebas/3d/bombonera.html" target="_blank" class="project-card">
+                <img src="https://s48453.pcdn.co/es/wp-content/uploads/2025/09/la-bombonera-estadio-boca-juniors-historia-scaled.jpg.webp" alt="Bombonera" class="card-image" onerror="this.src='https://via.placeholder.com/400x250?text=La+Bombonera'">
+                <div class="card-overlay">
+                    <h2 class="card-title">La Bombonera</h2>
+                </div>
+            </a>
+            <a href="https://sebas1491.github.io/proyectos-2-sebas/3d/monumental.html" target="_blank" class="project-card">
+                <img src="https://www.civitatis.com/f/argentina/buenos-aires/guia/estadio-river-plate-monumental-m.jpg" alt="Monumental" class="card-image" onerror="this.src='https://via.placeholder.com/400x250?text=El+Monumental'">
+                <div class="card-overlay">
+                    <h2 class="card-title">El Monumental</h2>
+                </div>
+            </a>
+            <a href="https://sebas1491.github.io/proyectos-2-sebas/3d/obelisco.html" target="_blank" class="project-card">
+                <img src="https://www.helloamerica.es/wp-content/uploads/2023/01/SliderBotArgentina.png" alt="Obelisco" class="card-image" onerror="this.src='https://via.placeholder.com/400x250?text=Obelisco'">
+                <div class="card-overlay">
+                    <h2 class="card-title">Obelisco</h2>
+                </div>
+            </a>
+            <a href="https://sebas1491.github.io/proyectos-2-sebas/3d/congreso.html" target="_blank" class="project-card">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8U7uG4xkX9aS4mJwcL_hbu33bqZ1KoWb9WQ&s" alt="Congreso" class="card-image" onerror="this.src='https://via.placeholder.com/400x250?text=Congreso'">
+                <div class="card-overlay">
+                    <h2 class="card-title">Congreso de la Nación</h2>
+                </div>
+            </a>
+            <a href="https://sebas1491.github.io/proyectos-2-sebas/3d/planeta-tierra.html" target="_blank" class="project-card">
+                <img src="https://concepto.de/wp-content/uploads/2019/10/planeta-tierra-e1570462065623.jpg" alt="Tierra" class="card-image" onerror="this.src='https://via.placeholder.com/400x250?text=Tierra'">
+                <div class="card-overlay">
+                    <h2 class="card-title">Planeta Tierra</h2>
+                </div>
+            </a>
+        </main>
+
+        <footer class="mt-12 border-t border-slate-800 pt-6 text-center">
+            <p class="text-slate-600 text-[10px] font-mono uppercase tracking-widest">
+                &copy; 2026 Proyectos de Seba
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+    </script>
+</body>
+</html>
