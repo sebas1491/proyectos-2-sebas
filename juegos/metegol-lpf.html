@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metegol Championship</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        body {
+            background-color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+        }
+
+        #main-layout {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
+            position: relative;
+        }
+
+        #menu-container {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .menu-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        #game-header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-family: 'Orbitron', sans-serif;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 5px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fbbf24;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        #game-wrapper {
+            position: relative;
+            flex: 1;
+            max-width: calc(100vh * (900 / 550));
+            background: linear-gradient(145deg, #2d3748, #1a202c);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 900 / 550;
+            border: 4px solid #3e2321;
+            border-radius: 4px;
+            background-color: #1b4332;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: none;
+        }
+
+        .score-box {
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 80px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .score-val {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        #message-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 1rem;
+            display: none;
+            text-align: center;
+            z-index: 50;
+            border: 2px solid #fbbf24;
+            width: 60%;
+        }
+
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        #credits-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MENÚ PRINCIPAL -->
+    <div id="menu-container">
+        <h1 class="text-5xl font-black mb-12 tracking-tighter italic text-blue-500" style="font-family: 'Orbitron'">METEGOL PRO</h1>
+        <div class="menu-card space-y-4 w-80">
+            <button onclick="startGame(true)" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold transition-all transform hover:scale-105">VS COMPUTADORA</button>
+            <button onclick="startGame(false)" class="w-full bg-red-600 hover:bg-red-500 py-3 rounded-xl font-bold transition-all transform hover:scale-105">DUELO 1 VS 1</button>
+            <button onclick="toggleCredits(true)" class="w-full bg-slate-700 hover:bg-slate-600 py-3 rounded-xl font-bold transition-all transform hover:scale-105">ACERCA DE / CRÉDITOS</button>
+        </div>
+    </div>
+
+    <!-- MODAL CRÉDITOS -->
+    <div id="credits-modal">
+        <div class="bg-black border-2 border-blue-400 p-8 rounded-2xl max-w-md w-full text-center relative">
+            <h2 class="text-blue-400 text-xl font-bold mb-6 tracking-widest uppercase">CONTROLES DEL JUEGO</h2>
+            <div class="space-y-2 mb-8 text-sm">
+                <p><strong>Jugador 1 (Local):</strong> Teclas <span class="text-yellow-400">W</span> y <span class="text-yellow-400">S</span></p>
+                <p><strong>Jugador 2 (Visita):</strong> Flechas <span class="text-yellow-400">ARRIBA</span> y <span class="text-yellow-400">ABAJO</span></p>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-6">
+                <h3 class="text-blue-400 font-bold mb-4 tracking-widest uppercase">CRÉDITOS</h3>
+                <div class="space-y-3 text-sm">
+                    <p><span class="font-bold">Autor:</span> Juan Sebastian Olivera</p>
+                    <p><span class="font-bold">Correo:</span> Juanlg1491@gmail.com</p>
+                    <p><span class="font-bold text-xs">IA utilizada:</span> Gemini : <span class="text-blue-300">https://gemini.google.com/app</span></p>
+                </div>
+            </div>
+            
+            <button onclick="toggleCredits(false)" class="mt-8 text-gray-400 hover:text-white underline text-xs">CERRAR</button>
+        </div>
+    </div>
+
+    <!-- JUEGO -->
+    <div id="main-layout">
+        <div id="game-header">02:00</div>
+
+        <div class="score-box">
+            <span id="score-home" class="score-val text-blue-500">0</span>
+        </div>
+
+        <div id="game-wrapper">
+            <div id="game-container">
+                <canvas id="field"></canvas>
+                <div id="message-overlay">
+                    <h2 id="msg-text" class="text-4xl font-black italic">¡GOL!</h2>
+                    <p id="msg-sub" class="text-gray-400 mt-2 text-xs">Reiniciando juego...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-box">
+            <span id="score-away" class="score-val text-red-500">0</span>
+        </div>
+        
+        <button onclick="backToMenu()" class="absolute bottom-4 left-4 text-[10px] text-gray-600 hover:text-gray-400 uppercase tracking-widest">Salir al Menú</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('field');
+        const ctx = canvas.getContext('2d');
+        const scoreHomeEl = document.getElementById('score-home');
+        const scoreAwayEl = document.getElementById('score-away');
+        const overlay = document.getElementById('message-overlay');
+        const msgText = document.getElementById('msg-text');
+        const timerEl = document.getElementById('game-header');
+        const wrapper = document.getElementById('game-wrapper');
+        const menu = document.getElementById('menu-container');
+        const layout = document.getElementById('main-layout');
+        const credits = document.getElementById('credits-modal');
+
+        const WIDTH = 900;
+        const HEIGHT = 550;
+        canvas.width = WIDTH;
+        canvas.height = HEIGHT;
+
+        const BAR_SPEED = 9;
+        const BALL_RADIUS = 10;
+        const PLAYER_W = 18;
+        const PLAYER_H = 55;
+        const FRICTION = 0.996; 
+
+        const FIELD_MARGIN = 8; 
+        const GOAL_WIDTH = 35; 
+        const GOAL_TOP = HEIGHT / 3.2;
+        const GOAL_BOTTOM = (HEIGHT / 3.2) * 2.2;
+        const GOAL_HEIGHT = GOAL_BOTTOM - GOAL_TOP;
+
+        let scoreHome = 0;
+        let scoreAway = 0;
+        let gameActive = false;
+        let vsAI = true;
+        let barVelocity = 0; 
+        let barVelocityP2 = 0;
+        
+        // Timer variables
+        let timeLeft = 120; // 2 minutos
+        let timerInterval;
+
+        const ball = {
+            x: WIDTH / 2,
+            y: HEIGHT / 2,
+            radius: BALL_RADIUS,
+            dx: 0,
+            dy: 0
+        };
+
+        const bars = [
+            { x: 50,  offsetY: 0, players: 1, color: '#2563eb', team: 'home', isAI: false },
+            { x: 160, offsetY: 0, players: 4, color: '#2563eb', team: 'home', isAI: false },
+            { x: 360, offsetY: 0, players: 3, color: '#2563eb', team: 'home', isAI: false },
+            { x: 650, offsetY: 0, players: 3, color: '#2563eb', team: 'home', isAI: false },
+
+            { x: 850, offsetY: 0, players: 1, color: '#dc2626', team: 'away', isAI: true },
+            { x: 740, offsetY: 0, players: 4, color: '#dc2626', team: 'away', isAI: true },
+            { x: 540, offsetY: 0, players: 3, color: '#dc2626', team: 'away', isAI: true },
+            { x: 250, offsetY: 0, players: 3, color: '#dc2626', team: 'away', isAI: true }
+        ];
+
+        let keys = {};
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+
+        function startGame(aiMode) {
+            vsAI = aiMode;
+            bars.forEach(b => {
+                if(b.team === 'away') b.isAI = aiMode;
+            });
+            menu.style.display = 'none';
+            layout.style.display = 'flex';
+            resetBall();
+            gameActive = true;
+            startTimer();
+        }
+
+        function startTimer() {
+            timeLeft = 120;
+            updateTimerUI();
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (gameActive) {
+                    timeLeft--;
+                    updateTimerUI();
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function backToMenu() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            layout.style.display = 'none';
+            menu.style.display = 'flex';
+            scoreHome = 0;
+            scoreAway = 0;
+            scoreHomeEl.innerText = 0;
+            scoreAwayEl.innerText = 0;
+        }
+
+        function toggleCredits(show) {
+            credits.style.display = show ? 'flex' : 'none';
+        }
+
+        function drawPitch() {
+            ctx.fillStyle = '#143628';
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.03)';
+            for(let i=0; i<WIDTH; i+=60) {
+                if((i/60)%2 === 0) ctx.fillRect(i, 0, 60, HEIGHT);
+            }
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(FIELD_MARGIN, FIELD_MARGIN, WIDTH - FIELD_MARGIN*2, HEIGHT - FIELD_MARGIN*2);
+            
+            ctx.beginPath();
+            ctx.moveTo(WIDTH/2, FIELD_MARGIN);
+            ctx.lineTo(WIDTH/2, HEIGHT-FIELD_MARGIN);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(WIDTH/2, HEIGHT/2, 60, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeRect(FIELD_MARGIN, HEIGHT/4, 90, HEIGHT/2);
+            ctx.strokeRect(WIDTH-90-FIELD_MARGIN, HEIGHT/4, 90, HEIGHT/2);
+
+            drawGoal(0, 'left');
+            drawGoal(WIDTH - GOAL_WIDTH, 'right');
+        }
+
+        function drawGoal(x, side) {
+            const isLeft = side === 'left';
+            const innerX = isLeft ? FIELD_MARGIN : WIDTH - FIELD_MARGIN;
+            
+            const grad = ctx.createLinearGradient(x, GOAL_TOP, x + GOAL_WIDTH, GOAL_TOP);
+            grad.addColorStop(isLeft ? 0 : 1, '#000');
+            grad.addColorStop(isLeft ? 1 : 0, '#0c221a');
+            ctx.fillStyle = grad;
+            ctx.fillRect(x, GOAL_TOP, GOAL_WIDTH, GOAL_HEIGHT);
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            const step = 8;
+            for(let i=0; i<=GOAL_WIDTH; i+=step) {
+                ctx.beginPath(); ctx.moveTo(x + i, GOAL_TOP); ctx.lineTo(x + i, GOAL_BOTTOM); ctx.stroke();
+            }
+            for(let j=0; j<=GOAL_HEIGHT; j+=step) {
+                ctx.beginPath(); ctx.moveTo(x, GOAL_TOP + j); ctx.lineTo(x + GOAL_WIDTH, GOAL_TOP + j); ctx.stroke();
+            }
+
+            ctx.strokeStyle = '#f8fafc';
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(x, GOAL_TOP);
+            ctx.lineTo(innerX, GOAL_TOP);
+            ctx.lineTo(innerX, GOAL_BOTTOM);
+            ctx.lineTo(x, GOAL_BOTTOM);
+            ctx.stroke();
+        }
+
+        function drawPlayers() {
+            bars.forEach(bar => {
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(bar.x + 2, 0, 3, HEIGHT);
+
+                const barGrad = ctx.createLinearGradient(bar.x-3, 0, bar.x+3, 0);
+                barGrad.addColorStop(0, '#94a3b8');
+                barGrad.addColorStop(0.5, '#f1f5f9');
+                barGrad.addColorStop(1, '#94a3b8');
+                ctx.fillStyle = barGrad;
+                ctx.fillRect(bar.x - 3, 0, 6, HEIGHT);
+
+                const spacing = HEIGHT / (bar.players + 1);
+                const maxTravel = spacing - (PLAYER_H/2) - 30;
+
+                if (bar.offsetY > maxTravel) bar.offsetY = maxTravel;
+                if (bar.offsetY < -maxTravel) bar.offsetY = -maxTravel;
+
+                for (let i = 1; i <= bar.players; i++) {
+                    const py = (i * spacing) + bar.offsetY;
+                    
+                    const pGrad = ctx.createLinearGradient(bar.x-PLAYER_W/2, 0, bar.x+PLAYER_W/2, 0);
+                    pGrad.addColorStop(0, bar.color);
+                    pGrad.addColorStop(1, '#0f172a');
+                    
+                    ctx.fillStyle = pGrad;
+                    ctx.beginPath();
+                    ctx.roundRect(bar.x - PLAYER_W/2, py - PLAYER_H/2, PLAYER_W, PLAYER_H, 3);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#fde68a';
+                    ctx.beginPath();
+                    ctx.arc(bar.x, py - PLAYER_H/4, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    checkCollision(bar.x, py, bar);
+                }
+            });
+        }
+
+        function checkCollision(px, py, bar) {
+            const bx = ball.x;
+            const by = ball.y;
+            const br = ball.radius;
+
+            const left = px - PLAYER_W/2;
+            const right = px + PLAYER_W/2;
+            const top = py - PLAYER_H/2;
+            const bottom = py + PLAYER_H/2;
+
+            if (bx + br > left && bx - br < right && by + br > top && by - br < bottom) {
+                ball.dx *= -1.08;
+                const vel = bar.team === 'home' ? barVelocity : barVelocityP2;
+                ball.dy += vel * 0.45;
+
+                if (bx < px) ball.x = left - br - 1;
+                else ball.x = right + br + 1;
+
+                const impact = (by - py) / (PLAYER_H / 2);
+                ball.dy += impact * 4;
+            }
+        }
+
+        function drawBall() {
+            ctx.save();
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            const grad = ctx.createRadialGradient(ball.x - 3, ball.y - 3, 2, ball.x, ball.y, ball.radius);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(1, '#cbd5e1');
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            // Movimiento P1
+            const prevY = bars[0].offsetY;
+            if (keys['KeyW']) bars.forEach(b => { if(b.team === 'home') b.offsetY -= BAR_SPEED });
+            if (keys['KeyS']) bars.forEach(b => { if(b.team === 'home') b.offsetY += BAR_SPEED });
+            barVelocity = bars[0].offsetY - prevY;
+
+            // Movimiento P2 o IA
+            const prevYP2 = bars[4].offsetY;
+            bars.forEach(b => {
+                if (b.team === 'away') {
+                    if (b.isAI) {
+                        const target = (ball.y - HEIGHT/2);
+                        const diff = (target) - b.offsetY;
+                        b.offsetY += diff * 0.08;
+                    } else {
+                        if (keys['ArrowUp']) b.offsetY -= BAR_SPEED;
+                        if (keys['ArrowDown']) b.offsetY += BAR_SPEED;
+                    }
+                }
+            });
+            barVelocityP2 = bars[4].offsetY - prevYP2;
+
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            ball.dx *= FRICTION;
+            ball.dy *= FRICTION;
+
+            if (ball.y - ball.radius < FIELD_MARGIN) {
+                ball.y = FIELD_MARGIN + ball.radius;
+                ball.dy *= -0.85;
+            } else if (ball.y + ball.radius > HEIGHT - FIELD_MARGIN) {
+                ball.y = HEIGHT - FIELD_MARGIN - ball.radius;
+                ball.dy *= -0.85;
+            }
+
+            const inGoalY = ball.y > GOAL_TOP && ball.y < GOAL_BOTTOM;
+
+            if (ball.x - ball.radius < FIELD_MARGIN) {
+                if (inGoalY) {
+                    if (ball.x < 0) goal('away');
+                } else {
+                    ball.x = FIELD_MARGIN + ball.radius;
+                    ball.dx *= -0.85;
+                }
+            }
+            
+            if (ball.x + ball.radius > WIDTH - FIELD_MARGIN) {
+                if (inGoalY) {
+                    if (ball.x > WIDTH) goal('home');
+                } else {
+                    ball.x = WIDTH - FIELD_MARGIN - ball.radius;
+                    ball.dx *= -0.85;
+                }
+            }
+
+            if (Math.abs(ball.dx) < 1.1 && gameActive) ball.dx = Math.sign(ball.dx || 1) * 2;
+        }
+
+        function goal(team) {
+            gameActive = false;
+            wrapper.classList.add('shake');
+            setTimeout(() => wrapper.classList.remove('shake'), 400);
+
+            if (team === 'home') {
+                scoreHome++;
+                scoreHomeEl.innerText = scoreHome;
+                msgText.innerText = "¡GOLAZO!";
+                msgText.className = "text-4xl font-black italic text-blue-500";
+            } else {
+                scoreAway++;
+                scoreAwayEl.innerText = scoreAway;
+                msgText.innerText = vsAI ? "¡GOL DE LA IA!" : "¡GOL VISITANTE!";
+                msgText.className = "text-4xl font-black italic text-red-500";
+            }
+
+            overlay.style.display = 'block';
+
+            // Saque automático después de 2 segundos
+            setTimeout(() => {
+                if (timeLeft > 0) {
+                    resetBall();
+                    overlay.style.display = 'none';
+                    gameActive = true;
+                }
+            }, 2000);
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            overlay.style.display = 'block';
+            
+            let winnerText = "";
+            if (scoreHome > scoreAway) winnerText = "¡GANÓ EL LOCAL!";
+            else if (scoreAway > scoreHome) winnerText = vsAI ? "¡GANÓ LA IA!" : "¡GANÓ EL VISITANTE!";
+            else winnerText = "¡EMPATE!";
+
+            msgText.innerText = "TIEMPO CUMPLIDO\n" + winnerText;
+            msgText.className = "text-3xl font-black italic text-yellow-500 whitespace-pre";
+            document.getElementById('msg-sub').innerText = "Volviendo al menú...";
+
+            setTimeout(() => backToMenu(), 4000);
+        }
+
+        function resetBall() {
+            ball.x = WIDTH / 2;
+            ball.y = HEIGHT / 2;
+            const side = Math.random() > 0.5 ? 1 : -1;
+            ball.dx = side * (7 + Math.random() * 2);
+            ball.dy = (Math.random() - 0.5) * 8;
+        }
+
+        function render() {
+            drawPitch();
+            drawPlayers();
+            drawBall();
+            update();
+            requestAnimationFrame(render);
+        }
+
+        render();
+
+    </script>
+</body>
+</html>
