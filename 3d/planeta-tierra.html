@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planeta Tierra 3D - Ultra Detalle Geográfico</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #ui {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            color: white;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 0;
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 5px;
+        }
+        .info {
+            font-size: 0.85rem;
+            opacity: 0.6;
+            margin-top: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .controls {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <h1 class="title">TERRA 2.0</h1>
+        <div class="info">Cartografía Procedural de Alta Resolución</div>
+    </div>
+
+    <div class="controls">
+        ARRASTRAR PARA ROTAR • SCROLL PARA ZOOM • DOBLE CLICK PARA RESET
+    </div>
+
+    <script>
+        let scene, camera, renderer, earth, clouds, starSphere, atmosphere;
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        function generateHighResTextures() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 4096;
+            canvas.height = 2048;
+            const ctx = canvas.getContext('2d');
+
+            // 1. Océanos Profundos
+            ctx.fillStyle = '#0a1a2f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Generar Continentes con detalle manual
+            function drawContinent(points, baseColor, accentColor) {
+                const grad = ctx.createRadialGradient(
+                    points[0][0] * canvas.width / 100, 
+                    points[0][1] * canvas.height / 100, 
+                    0, 
+                    points[0][0] * canvas.width / 100, 
+                    points[0][1] * canvas.height / 100, 
+                    1000
+                );
+                grad.addColorStop(0, baseColor);
+                grad.addColorStop(1, accentColor);
+                
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                points.forEach((p, i) => {
+                    const x = p[0] * canvas.width / 100;
+                    const y = p[1] * canvas.height / 100;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.closePath();
+                ctx.fill();
+
+                // Costa / Arena
+                ctx.strokeStyle = 'rgba(194, 178, 128, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // AMÉRICA DEL NORTE
+            drawContinent([
+                [10, 20], [20, 15], [30, 10], [40, 10], [45, 5], [42, 20], 
+                [38, 25], [35, 45], [28, 48], [25, 45], [22, 40], [15, 38], [8, 30]
+            ], '#228B22', '#006400');
+            
+            // AMÉRICA DEL SUR
+            drawContinent([
+                [28, 50], [35, 52], [38, 60], [35, 85], [32, 92], [28, 85], [25, 60]
+            ], '#006400', '#228B22');
+
+            // ÁFRICA
+            drawContinent([
+                [48, 35], [55, 32], [62, 32], [68, 45], [62, 55], [58, 85], [52, 88], [48, 60], [45, 40]
+            ], '#8B4513', '#228B22');
+            
+            // Madagascar
+            drawContinent([[64, 75], [66, 75], [65, 82]], '#228B22', '#228B22');
+
+            // EURASIA
+            drawContinent([
+                [48, 30], [52, 20], [55, 10], [65, 12], [85, 10], [95, 15], 
+                [98, 35], [90, 40], [85, 55], [78, 55], [75, 45], [68, 35], [55, 35]
+            ], '#006400', '#8B4513');
+            
+            // India
+            drawContinent([[72, 45], [78, 45], [75, 55]], '#8B4513', '#228B22');
+            // Japón e Islas
+            drawContinent([[92, 25], [94, 25], [93, 30]], '#228B22', '#228B22');
+
+            // AUSTRALIA
+            drawContinent([
+                [78, 65], [90, 68], [92, 75], [88, 85], [78, 82], [75, 75]
+            ], '#D2B48C', '#8B4513');
+
+            // ANTÁRTIDA
+            drawContinent([[5, 95], [95, 95], [95, 100], [5, 100]], '#FFFFFF', '#E0F7FA');
+
+            // 3. Luces Nocturnas
+            const nightCanvas = document.createElement('canvas');
+            nightCanvas.width = 4096; nightCanvas.height = 2048;
+            const nctx = nightCanvas.getContext('2d');
+            nctx.fillStyle = 'black';
+            nctx.fillRect(0, 0, 4096, 2048);
+            
+            const mainImg = ctx.getImageData(0,0,4096,2048).data;
+            for(let i=0; i<8000; i++) {
+                const x = Math.floor(Math.random() * 4096);
+                const y = Math.floor(Math.random() * 2048);
+                const idx = (y * 4096 + x) * 4;
+                if(mainImg[idx+1] > 50) { 
+                    const size = Math.random() * 1.5;
+                    nctx.fillStyle = `rgba(255, 255, 180, ${Math.random() * 0.8})`;
+                    nctx.fillRect(x, y, size, size);
+                }
+            }
+
+            return {
+                day: new THREE.CanvasTexture(canvas),
+                night: new THREE.CanvasTexture(nightCanvas)
+            };
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.z = 18;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            document.body.appendChild(renderer.domElement);
+
+            // Reducción del brillo de la luz solar (de 2.2 a 1.5)
+            const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+            sun.position.set(20, 10, 20);
+            scene.add(sun);
+
+            // Reducción de la luz ambiental (de 0.5 a 0.2)
+            const ambient = new THREE.AmbientLight(0x0a0a0f, 0.2);
+            scene.add(ambient);
+
+            const textures = generateHighResTextures();
+
+            // TIERRA
+            const earthGeom = new THREE.SphereGeometry(5, 128, 128);
+            const earthMat = new THREE.MeshPhongMaterial({
+                map: textures.day,
+                emissiveMap: textures.night,
+                emissive: new THREE.Color(0xffffaa),
+                // Reducción de la intensidad emisiva nocturna (de 0.7 a 0.4)
+                emissiveIntensity: 0.4,
+                shininess: 25,
+                specular: new THREE.Color(0x222222)
+            });
+            earth = new THREE.Mesh(earthGeom, earthMat);
+            scene.add(earth);
+
+            // NUBES
+            const cloudGeom = new THREE.SphereGeometry(5.12, 128, 128);
+            const cloudMat = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.2, // Reducción de opacidad de nubes
+                blending: THREE.AdditiveBlending
+            });
+            clouds = new THREE.Mesh(cloudGeom, cloudMat);
+            scene.add(clouds);
+
+            // ATMÓSFERA
+            const atmoGeom = new THREE.SphereGeometry(5.4, 128, 128);
+            const atmoMat = new THREE.ShaderMaterial({
+                vertexShader: `
+                    varying vec3 vNormal;
+                    void main() {
+                        vNormal = normalize(normalMatrix * normal);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    varying vec3 vNormal;
+                    void main() {
+                        // Atenuación de la atmósfera (ajustando la potencia)
+                        float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.0)), 5.0);
+                        gl_FragColor = vec4(0.2, 0.5, 1.0, 1.0) * intensity;
+                    }
+                `,
+                side: THREE.BackSide,
+                transparent: true,
+                blending: THREE.AdditiveBlending
+            });
+            atmosphere = new THREE.Mesh(atmoGeom, atmoMat);
+            scene.add(atmosphere);
+
+            // FONDO ESTRELLAS
+            const starPositions = new Float32Array(20000 * 3);
+            const starColors = new Float32Array(20000 * 3);
+            for(let i=0; i<20000; i++) {
+                const i3 = i * 3;
+                const r = 900 + Math.random() * 100;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                starPositions[i3] = r * Math.sin(phi) * Math.cos(theta);
+                starPositions[i3+1] = r * Math.sin(phi) * Math.sin(theta);
+                starPositions[i3+2] = r * Math.cos(phi);
+                // Estrellas un poco más tenues
+                const c = 0.5 + Math.random() * 0.4;
+                starColors[i3] = c; starColors[i3+1] = c; starColors[i3+2] = c + Math.random() * 0.1;
+            }
+            const sGeom = new THREE.BufferGeometry();
+            sGeom.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+            sGeom.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+            starSphere = new THREE.Points(sGeom, new THREE.PointsMaterial({ size: 1.0, vertexColors: true }));
+            scene.add(starSphere);
+
+            // INTERACCIONES
+            window.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    earth.rotation.y += (e.clientX - previousMousePosition.x) * 0.003;
+                    earth.rotation.x += (e.clientY - previousMousePosition.y) * 0.003;
+                    clouds.rotation.y += (e.clientX - previousMousePosition.x) * 0.0035;
+                }
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            window.addEventListener('wheel', (e) => {
+                camera.position.z = Math.max(7, Math.min(camera.position.z + e.deltaY * 0.02, 50));
+            });
+
+            window.addEventListener('dblclick', () => {
+                earth.rotation.set(0, 0, 0);
+            });
+
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (!isDragging) {
+                earth.rotation.y += 0.0006;
+                clouds.rotation.y += 0.0009;
+            }
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        window.onload = init;
+    </script>
+</body>
+</html>
