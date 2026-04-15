@@ -3,57 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Palacio del Congreso de la Nación Argentina - Columnas Engrosadas</title>
+    <title>Palacio del Congreso - Estructura Arquitectónica</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #a3d8f4;
+            background-color: #92b8d1;
             font-family: 'Inter', sans-serif;
-            touch-action: none; /* Evita el scroll nativo para permitir la rotación táctil */
+            touch-action: none;
         }
         #ui-overlay {
             position: absolute;
             top: 25px;
             left: 25px;
             color: #1a1a1a;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             padding: 25px;
             border-radius: 12px;
             pointer-events: none;
-            max-width: 320px;
-            border: 1px solid rgba(0,0,0,0.1);
+            max-width: 340px;
+            border: 1px solid rgba(255,255,255,0.4);
             box-shadow: 0 8px 32px rgba(0,0,0,0.15);
             z-index: 10;
         }
-        h1 { margin: 0 0 8px 0; font-size: 1.5rem; font-weight: 800; }
+        h1 { margin: 0 0 8px 0; font-size: 1.4rem; font-weight: 800; color: #111; }
         .badge {
-            background: #2d5a27;
+            background: #1a4a38;
             color: white;
-            padding: 4px 10px;
+            padding: 5px 10px;
             border-radius: 4px;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 12px;
             display: inline-block;
+            font-weight: bold;
         }
-        p { margin: 0; font-size: 0.9rem; line-height: 1.5; color: #444; }
+        p { margin: 0; font-size: 0.85rem; line-height: 1.5; color: #444; }
         .controls-hint {
             position: absolute;
             bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
-            color: rgba(0,0,0,0.6);
+            color: rgba(255,255,255,0.9);
             font-size: 0.8rem;
-            background: rgba(255,255,255,0.8);
-            padding: 8px 20px;
-            border-radius: 20px;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 24px;
+            border-radius: 30px;
             z-index: 10;
             text-align: center;
-            width: fit-content;
-            white-space: nowrap;
+            backdrop-filter: blur(5px);
+            letter-spacing: 0.5px;
         }
         #canvas-container { width: 100vw; height: 100vh; }
     </style>
@@ -62,9 +63,11 @@
 
     <div id="ui-overlay">
         <h1>Palacio del Congreso</h1>
+        <div class="badge">Estructura Optimizada</div>
+        <p>Enfoque 100% arquitectónico. Geometrías cacheadas en memoria para carga ultrarrápida. Añadidas balaustradas, pilastras laterales y ornamentación fina.</p>
     </div>
 
-    <div class="controls-hint">Orbitar: Arrastrar • Zoom: Pellizcar/Rueda</div>
+    <div class="controls-hint">Arrastrar para Orbitar • Pellizcar para Zoom</div>
     <div id="canvas-container"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -72,198 +75,312 @@
     <script>
         let scene, camera, renderer, congressGroup;
         let isMouseDown = false;
-        let targetRotationY = 0.5, targetRotationX = 0.3;
-        let rotationY = 0.5, rotationX = 0.3;
-        let zoom = 150;
+        let targetRotationY = -0.5, targetRotationX = 0.25;
+        let rotationY = -0.5, rotationX = 0.25;
+        let zoom = 140;
         let lastTouchX = 0;
         let lastTouchY = 0;
 
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xa3d8f4);
-            scene.fog = new THREE.Fog(0xa3d8f4, 300, 1200);
+            scene.background = new THREE.Color(0x92b8d1);
+            scene.fog = new THREE.Fog(0x92b8d1, 150, 1000);
 
-            camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 2000);
+            camera = new THREE.PerspectiveCamera(32, window.innerWidth / window.innerHeight, 1, 2000);
             camera.position.set(0, 50, zoom);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-            // Luces
-            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            // --- LUCES ---
+            const ambient = new THREE.AmbientLight(0xffffff, 0.55);
             scene.add(ambient);
 
-            const sun = new THREE.DirectionalLight(0xfff5e6, 1.2);
-            sun.position.set(150, 200, 100);
+            const sun = new THREE.DirectionalLight(0xfff7ea, 1.2);
+            sun.position.set(120, 180, 120);
             sun.castShadow = true;
-            sun.shadow.mapSize.width = 4096;
-            sun.shadow.mapSize.height = 4096;
+            sun.shadow.mapSize.width = 2048; // Reducido levemente para rendimiento
+            sun.shadow.mapSize.height = 2048;
+            sun.shadow.camera.near = 10;
+            sun.shadow.camera.far = 400;
+            sun.shadow.camera.left = -100;
+            sun.shadow.camera.right = 100;
+            sun.shadow.camera.top = 100;
+            sun.shadow.camera.bottom = -100;
+            sun.shadow.bias = -0.0005;
             scene.add(sun);
+
+            const fillLight = new THREE.PointLight(0xddeeff, 0.5, 300);
+            fillLight.position.set(-50, 20, 100);
+            scene.add(fillLight);
 
             congressGroup = new THREE.Group();
 
-            // Materiales
-            const marbleMat = new THREE.MeshStandardMaterial({ color: 0xbbbbbb, roughness: 0.5 });
-            const darkMarbleMat = new THREE.MeshStandardMaterial({ color: 0x8a8a8a, roughness: 0.7 });
-            const domeMat = new THREE.MeshStandardMaterial({ color: 0x3d664d, roughness: 0.6, metalness: 0.3 }); 
-            const graniteMat = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, roughness: 0.9 });
-            const windowMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 });
+            // --- MATERIALES (Se declaran una sola vez) ---
+            const marbleMat = new THREE.MeshStandardMaterial({ color: 0xc8c8c8, roughness: 0.65 });
+            const darkMarbleMat = new THREE.MeshStandardMaterial({ color: 0x9f9f9f, roughness: 0.7 });
+            const domeMat = new THREE.MeshStandardMaterial({ color: 0x2e5c46, roughness: 0.4, metalness: 0.3 }); // Verde cobre
+            const graniteMat = new THREE.MeshStandardMaterial({ color: 0x5a5a5a, roughness: 0.8 });
+            const windowMat = new THREE.MeshStandardMaterial({ color: 0x15181a, roughness: 0.2, metalness: 0.8 });
+            const bronzeMat = new THREE.MeshStandardMaterial({ color: 0x202420, roughness: 0.5, metalness: 0.6 }); 
+            const woodDoorMat = new THREE.MeshStandardMaterial({ color: 0x3d2314, roughness: 0.8 });
 
-            const createBox = (w, h, d, x, y, z, mat) => {
-                const geo = new THREE.BoxGeometry(w, h, d);
-                const mesh = new THREE.Mesh(geo, mat || marbleMat);
+            // --- OPTIMIZACIÓN: CACHÉ DE GEOMETRÍAS ---
+            // Reutilizar geometrías evita que el navegador se congele procesando vértices nuevos
+            const geomCache = {};
+            
+            function getBoxGeo(w, h, d) {
+                const key = `${w}_${h}_${d}`;
+                if (!geomCache[key]) {
+                    geomCache[key] = new THREE.BoxGeometry(w, h, d);
+                }
+                return geomCache[key];
+            }
+
+            const createBox = (w, h, d, x, y, z, mat, castShadow = true) => {
+                const mesh = new THREE.Mesh(getBoxGeo(w, h, d), mat);
                 mesh.position.set(x, y + h/2, z);
-                mesh.castShadow = true;
+                mesh.castShadow = castShadow;
                 mesh.receiveShadow = true;
                 congressGroup.add(mesh);
                 return mesh;
             };
 
-            // 1. BASE Y CUERPO PRINCIPAL
-            createBox(160, 3, 40, 0, 0, 0, graniteMat);
-            createBox(64, 18, 38, 0, 3, 4, darkMarbleMat); 
-            createBox(35, 15, 25, 45, 3, -2.5, marbleMat); 
-            createBox(35, 15, 25, -45, 3, -2.5, marbleMat); 
+            // Geometrías predefinidas comunes
+            const mainColGeo = new THREE.CylinderGeometry(0.65, 0.75, 11, 12);
+            const drumColGeo = new THREE.CylinderGeometry(0.45, 0.45, 18, 8);
+            const nerveGeo = new THREE.BoxGeometry(0.6, 1.8, 1.2);
 
-            // 2. PABELLONES LATERALES
-            const sideWidth = 22;
+            // ==========================================
+            // 1. BASE Y CUERPO PRINCIPAL
+            // ==========================================
+            createBox(162, 3, 42, 0, 0, 0, graniteMat); // Base principal
+            createBox(64, 18, 38, 0, 3, 4, darkMarbleMat); // Bloque central
+            createBox(35, 15, 25, 45, 3, -2.5, marbleMat); // Ala derecha
+            createBox(35, 15, 25, -45, 3, -2.5, marbleMat); // Ala izquierda
+
+            // ==========================================
+            // 2. PABELLONES LATERALES CON PILASTRAS
+            // ==========================================
+            const sideWidth = 24;
             const sideDepth = 40;
+            
             for(let side = -1; side <= 1; side += 2) {
                 const x = 75 * side;
                 createBox(sideWidth, 21, sideDepth, x, 3, 2, marbleMat);
-                createBox(sideWidth + 2, 1, sideDepth + 2, x, 24, 2, darkMarbleMat); 
                 
+                // Techo pabellón
+                createBox(sideWidth + 2, 1.5, sideDepth + 2, x, 24, 2, darkMarbleMat); 
+                
+                // Balaustradas (Barandillas en el techo) - Añadido arquitectónico
+                for(let b = 0; b < 6; b++) {
+                    createBox(1.5, 1.5, 1.5, x - 10 + b*4, 25.5, 2 + sideDepth/2, marbleMat, false);
+                }
+                createBox(sideWidth, 0.4, 0.8, x, 27, 2 + sideDepth/2, marbleMat, false);
+
+                // Pilastras laterales (Columnas pegadas a la pared)
+                for(let p = 0; p < 4; p++) {
+                    createBox(1.5, 21, 0.8, x - 8 + p*5.3, 3, 2 + sideDepth/2, marbleMat);
+                }
+
+                // Ventanas laterales
                 for(let r = 0; r < 3; r++) {
-                    createBox(4, 4, 1, x, 6 + r*6, 2 + sideDepth/2, windowMat);
+                    for(let w = 0; w < 3; w++) {
+                        const wx = x - 5.5 + w*5.3;
+                        createBox(2.5, 4, 0.8, wx, 6 + r*6, 2 + sideDepth/2, windowMat, false);
+                        createBox(3.2, 0.4, 1.2, wx, 5.6 + r*6, 2 + sideDepth/2, darkMarbleMat, false); // Repisa
+                        createBox(3.2, 0.4, 1.2, wx, 10 + r*6, 2 + sideDepth/2, marbleMat, false); // Dintel
+                    }
                 }
             }
 
-            // Cornisas
-            createBox(155, 0.6, 31, 0, 10, -0.5, darkMarbleMat);
-            createBox(155, 0.8, 31, 0, 18, -0.5, marbleMat);
+            // Cornisas principales horizontales
+            createBox(155, 0.8, 32, 0, 10, -0.5, darkMarbleMat);
+            createBox(155, 1.2, 32, 0, 18, -0.5, marbleMat);
 
+            // ==========================================
             // 3. DETALLES VENTANAS CENTRALES
+            // ==========================================
             for(let side = -1; side <= 1; side += 2) {
                 for(let row = 0; row < 2; row++) {
                     for(let i = 0; i < 6; i++) {
                         const xPos = side * (32 + i * 5);
                         const yPos = 6 + row * 6;
-                        createBox(1.8, 3.5, 0.5, xPos, yPos, 10, windowMat);
-                        createBox(2.2, 0.3, 1, xPos, yPos + 3.5, 10.2, marbleMat); 
+                        // Ventana
+                        createBox(2, 3.8, 0.5, xPos, yPos, 10, windowMat, false);
+                        // Marco grueso
+                        createBox(2.6, 0.4, 1.2, xPos, yPos + 3.8, 10.2, marbleMat, false); 
+                        createBox(2.6, 0.3, 1.0, xPos, yPos - 0.3, 10.2, darkMarbleMat, false);
                     }
                 }
             }
 
-            // 4. ESCALINATA Y PÓRTICO
+            // ==========================================
+            // 4. ESCALINATA CENTRAL Y PÓRTICO
+            // ==========================================
             const stairWidth = 28;
-            for(let i = 0; i < 16; i++) {
-                const step = new THREE.Mesh(new THREE.BoxGeometry(stairWidth - i*0.15, 0.3, 12 - i*0.6), graniteMat);
-                step.position.set(0, 3 + 0.3 * i, 33.5 + (12 - i*0.6)/2);
-                step.receiveShadow = true;
-                congressGroup.add(step);
+            // Escalinata optimizada
+            for(let i = 0; i < 18; i++) {
+                const depth = 14 - i*0.5;
+                createBox(stairWidth - i*0.1, 0.4, depth, 0, 3 + 0.35 * i, 33 + depth/2, graniteMat);
             }
 
-            createBox(24, 1, 20, 0, 7.5, 25, marbleMat); 
-            createBox(24, 1, 17, 0, 20, 23.5, marbleMat);
+            // Pisos del pórtico
+            createBox(24, 1, 20, 0, 9.3, 25, marbleMat); 
+            createBox(24, 1.5, 17, 0, 20, 23.5, marbleMat);
 
+            // Puertas principales
+            createBox(4, 7.5, 0.5, 0, 10.3, 24, woodDoorMat);
+            createBox(3.2, 6.5, 0.5, -6, 10.3, 24, woodDoorMat);
+            createBox(3.2, 6.5, 0.5, 6, 10.3, 24, woodDoorMat);
+
+            // Columnas del pórtico
             const columnSpan = 22;
             const columnCount = 8;
             for(let i = 0; i < columnCount; i++) {
                 const colX = (i / (columnCount - 1)) * columnSpan - (columnSpan / 2);
-                const col = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.75, 12.5, 16), marbleMat);
-                col.position.set(colX, 14.75, 32); 
+                
+                createBox(1.8, 0.8, 1.8, colX, 9.3, 32, darkMarbleMat); // Base
+                
+                const col = new THREE.Mesh(mainColGeo, marbleMat);
+                col.position.set(colX, 15.6, 32); 
                 col.castShadow = true;
                 congressGroup.add(col);
+
+                createBox(1.6, 0.8, 1.6, colX, 20.6, 32, marbleMat, false); // Capitel
             }
 
+            // Frontis (Triángulo superior)
             const triangleShape = new THREE.Shape();
             triangleShape.moveTo(-11.5, 0); 
             triangleShape.lineTo(11.5, 0); 
-            triangleShape.lineTo(0, 5); 
+            triangleShape.lineTo(0, 5.5); 
             triangleShape.lineTo(-11.5, 0);
-            const frontis = new THREE.Mesh(new THREE.ExtrudeGeometry(triangleShape, { depth: 2, bevelEnabled: true }), marbleMat);
-            frontis.position.set(0, 21, 31);
+            const frontisGeo = new THREE.ExtrudeGeometry(triangleShape, { depth: 2, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.2, bevelThickness: 0.2 });
+            const frontis = new THREE.Mesh(frontisGeo, marbleMat);
+            frontis.position.set(0, 21.5, 31);
+            frontis.castShadow = true;
             congressGroup.add(frontis);
 
-            // 5. CUADRIGA
-            createBox(9, 1, 4, 0, 23, 29, domeMat);
-            const victoria = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.5, 5, 8), domeMat);
-            victoria.position.set(0, 26, 28.5);
-            congressGroup.add(victoria);
+            // Decoración interior del frontis
+            createBox(14, 1.2, 0.5, 0, 22, 33.1, darkMarbleMat, false);
+            const escudo = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.6, 16), bronzeMat);
+            escudo.rotation.x = Math.PI / 2;
+            escudo.position.set(0, 23, 33.2);
+            congressGroup.add(escudo);
 
-            // 6. CÚPULA
+            // ==========================================
+            // 5. CUADRIGA (Estatua de caballos)
+            // ==========================================
+            const cuadrigaGrp = new THREE.Group();
+            cuadrigaGrp.position.set(0, 23.5, 29);
+            
+            createBox(6, 1.5, 4.5, 0, 0, 0, bronzeMat); // Base pedestal
+            
+            // Victoria (Central)
+            createBox(0.8, 4, 0.8, 0, 1.5, -1, bronzeMat, false); // Cuerpo
+            createBox(4.5, 1.2, 0.2, 0, 3.5, -1.2, bronzeMat, false); // Alas
+
+            // Caballos abstractos
+            for(let c = 0; c < 4; c++) {
+                const cabX = -2.25 + c * 1.5;
+                createBox(0.8, 2, 2.8, cabX, 1.5, 2, bronzeMat, false); // Cuerpo
+                createBox(0.6, 1.2, 1.2, cabX, 3, 3, bronzeMat, false); // Cabeza
+            }
+            congressGroup.add(cuadrigaGrp);
+
+            // ==========================================
+            // 6. CÚPULA MONUMENTAL
+            // ==========================================
             const domeBaseY = 21;
-            createBox(26, 14, 32, 0, domeBaseY, 3, darkMarbleMat); 
+            createBox(28, 6, 34, 0, domeBaseY, 3, darkMarbleMat); // Base cuadrada ancha
+            createBox(25, 8, 31, 0, domeBaseY + 6, 3, marbleMat); // Base cuadrada alta
 
             const drumY = domeBaseY + 14;
             const drumHeight = 18;
-            const drumCore = new THREE.Mesh(new THREE.CylinderGeometry(8, 8.5, drumHeight, 32), marbleMat);
-            drumCore.position.y = drumY + drumHeight/2;
-            drumCore.position.z = 3; 
+            
+            // Núcleo del tambor
+            const drumCore = new THREE.Mesh(new THREE.CylinderGeometry(8, 8.5, drumHeight, 24), marbleMat);
+            drumCore.position.set(0, drumY + drumHeight/2, 3);
+            drumCore.castShadow = true;
             congressGroup.add(drumCore);
 
-            const dColCount = 20;
-            const dColRadius = 10.5;
+            const dColCount = 16; // Reducido levemente para rendimiento visual
+            const dColRadius = 10.2;
+            
             for(let i = 0; i < dColCount; i++) {
                 const angle = (i / dColCount) * Math.PI * 2;
                 const posX = Math.cos(angle) * dColRadius;
                 const posZ = Math.sin(angle) * dColRadius + 3; 
-                const dCol = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, drumHeight, 10), marbleMat);
+                
+                // Columna
+                const dCol = new THREE.Mesh(drumColGeo, marbleMat);
                 dCol.position.set(posX, drumY + drumHeight/2, posZ);
                 dCol.castShadow = true;
                 congressGroup.add(dCol);
+
+                // Ventanas oscuras
+                const winPosX = Math.cos(angle + Math.PI/dColCount) * 8.6;
+                const winPosZ = Math.sin(angle + Math.PI/dColCount) * 8.6 + 3;
+                createBox(1.2, 5, 0.6, winPosX, drumY + drumHeight/2 - 2, winPosZ, windowMat, false).lookAt(0, drumY + drumHeight/2 - 2, 3);
             }
 
-            const entablature = new THREE.Mesh(new THREE.CylinderGeometry(11.5, 11.5, 3, 32), marbleMat);
-            entablature.position.y = drumY + drumHeight + 1.5;
-            entablature.position.z = 3; 
+            // Entablamento superior del tambor
+            const entablature = new THREE.Mesh(new THREE.CylinderGeometry(11.2, 11.2, 2.5, 24), marbleMat);
+            entablature.position.set(0, drumY + drumHeight + 1.25, 3);
             entablature.castShadow = true;
             congressGroup.add(entablature);
 
-            const domeStart = drumY + drumHeight + 3;
-            const domeRadius = 9;
-            const domeScaleY = 1.45;
+            // Domo Principal (Verde)
+            const domeStart = drumY + drumHeight + 2.5;
+            const domeRadius = 9.2;
+            const domeScaleY = 1.4;
             
-            const domeMesh = new THREE.Mesh(new THREE.SphereGeometry(domeRadius, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2), domeMat);
-            domeMesh.position.y = domeStart;
-            domeMesh.position.z = 3; 
+            const domeMesh = new THREE.Mesh(new THREE.SphereGeometry(domeRadius, 32, 24, 0, Math.PI * 2, 0, Math.PI / 2), domeMat);
+            domeMesh.position.set(0, domeStart, 3);
             domeMesh.scale.y = domeScaleY;
+            domeMesh.castShadow = true;
             congressGroup.add(domeMesh);
 
+            // Nervaduras
             const nervesCount = 16;
             for(let i = 0; i < nervesCount; i++) {
                 const angle = (i / nervesCount) * Math.PI * 2;
                 const nerveGroup = new THREE.Group();
-                nerveGroup.position.y = domeStart;
-                nerveGroup.position.z = 3; 
+                nerveGroup.position.set(0, domeStart, 3);
                 nerveGroup.rotation.y = angle;
-                const segmentCount = 10;
-                for(let j = 0; j < segmentCount; j++) {
-                    const latAngle = (j / segmentCount) * (Math.PI / 2);
-                    const seg = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.8, 1.2), domeMat);
-                    seg.position.z = Math.cos(latAngle) * (domeRadius + 0.1);
-                    seg.position.y = Math.sin(latAngle) * (domeRadius * domeScaleY + 0.1);
+                
+                for(let j = 0; j < 10; j++) {
+                    const latAngle = (j / 10) * (Math.PI / 2);
+                    const seg = new THREE.Mesh(nerveGeo, bronzeMat);
+                    seg.position.set(0, Math.sin(latAngle) * (domeRadius * domeScaleY + 0.1), Math.cos(latAngle) * (domeRadius + 0.1));
                     seg.rotation.x = -latAngle;
+                    seg.castShadow = false; // Optimización
                     nerveGroup.add(seg);
                 }
                 congressGroup.add(nerveGroup);
             }
 
+            // Linterna y Pináculo
             const lanternY = domeStart + (domeRadius * domeScaleY);
-            createBox(3.5, 12, 3.5, 0, lanternY, 3, domeMat);
-            const spire = new THREE.Mesh(new THREE.ConeGeometry(0.6, 12, 12), domeMat);
-            spire.position.y = lanternY + 16;
-            spire.position.z = 3; 
+            createBox(4, 3, 4, 0, lanternY, 3, darkMarbleMat); // Base linterna
+            createBox(3, 8, 3, 0, lanternY + 3, 3, domeMat); // Linterna
+            
+            const spire = new THREE.Mesh(new THREE.ConeGeometry(0.5, 14, 8), bronzeMat);
+            spire.position.set(0, lanternY + 11 + 7, 3);
             congressGroup.add(spire);
 
             scene.add(congressGroup);
 
-            const ground = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+            // --- SUELO NEUTRO ---
+            // Un plano liso para dar profundidad sin quitar protagonismo al edificio
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshStandardMaterial({ color: 0x7b9eb5, roughness: 1 }));
             ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -0.1;
             ground.receiveShadow = true;
             scene.add(ground);
 
@@ -278,12 +395,15 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            rotationY += (targetRotationY - rotationY) * 0.08;
-            rotationX += (targetRotationX - rotationX) * 0.08;
+            rotationY += (targetRotationY - rotationY) * 0.1;
+            rotationX += (targetRotationX - rotationX) * 0.1;
+            
+            // Órbita de la cámara
             camera.position.x = Math.sin(rotationY) * zoom;
             camera.position.z = Math.cos(rotationY) * zoom;
-            camera.position.y = Math.sin(rotationX) * zoom + 30;
-            camera.lookAt(0, 30, 0);
+            camera.position.y = Math.sin(rotationX) * zoom + 35;
+            camera.lookAt(0, 35, 0);
+            
             renderer.render(scene, camera);
         }
 
@@ -295,15 +415,15 @@
         document.addEventListener('mouseup', () => isMouseDown = false);
         document.addEventListener('mousemove', (e) => {
             if(isMouseDown) {
-                targetRotationY -= e.movementX * 0.005;
-                targetRotationX = Math.max(0.1, Math.min(targetRotationX + e.movementY * 0.005, 1.4));
+                targetRotationY -= e.movementX * 0.006;
+                targetRotationX = Math.max(0.02, Math.min(targetRotationX + e.movementY * 0.006, 1.4));
             }
         });
         document.addEventListener('wheel', (e) => {
-            zoom = Math.max(80, Math.min(zoom + e.deltaY * 0.2, 800));
+            zoom = Math.max(70, Math.min(zoom + e.deltaY * 0.2, 500));
         });
 
-        // --- INTERACCIONES TOUCH (CELULAR) ---
+        // --- INTERACCIONES TOUCH (MÓVIL) ---
         document.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
                 isMouseDown = true;
@@ -319,8 +439,8 @@
                 const deltaX = touchX - lastTouchX;
                 const deltaY = touchY - lastTouchY;
                 
-                targetRotationY -= deltaX * 0.005;
-                targetRotationX = Math.max(0.1, Math.min(targetRotationX + deltaY * 0.005, 1.4));
+                targetRotationY -= deltaX * 0.006;
+                targetRotationX = Math.max(0.02, Math.min(targetRotationX + deltaY * 0.006, 1.4));
                 
                 lastTouchX = touchX;
                 lastTouchY = touchY;
