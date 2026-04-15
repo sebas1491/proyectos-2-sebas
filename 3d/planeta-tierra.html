@@ -11,6 +11,7 @@
             overflow: hidden;
             background: #000;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none; /* Evita el scroll nativo en móviles mientras se interactúa */
         }
         #ui {
             position: absolute;
@@ -45,6 +46,7 @@
             font-size: 0.75rem;
             letter-spacing: 2px;
             text-align: center;
+            width: 100%;
         }
     </style>
 </head>
@@ -97,7 +99,6 @@
                 ctx.closePath();
                 ctx.fill();
 
-                // Costa / Arena
                 ctx.strokeStyle = 'rgba(194, 178, 128, 0.3)';
                 ctx.lineWidth = 1;
                 ctx.stroke();
@@ -119,7 +120,6 @@
                 [48, 35], [55, 32], [62, 32], [68, 45], [62, 55], [58, 85], [52, 88], [48, 60], [45, 40]
             ], '#8B4513', '#228B22');
             
-            // Madagascar
             drawContinent([[64, 75], [66, 75], [65, 82]], '#228B22', '#228B22');
 
             // EURASIA
@@ -128,9 +128,7 @@
                 [98, 35], [90, 40], [85, 55], [78, 55], [75, 45], [68, 35], [55, 35]
             ], '#006400', '#8B4513');
             
-            // India
             drawContinent([[72, 45], [78, 45], [75, 55]], '#8B4513', '#228B22');
-            // Japón e Islas
             drawContinent([[92, 25], [94, 25], [93, 30]], '#228B22', '#228B22');
 
             // AUSTRALIA
@@ -141,7 +139,6 @@
             // ANTÁRTIDA
             drawContinent([[5, 95], [95, 95], [95, 100], [5, 100]], '#FFFFFF', '#E0F7FA');
 
-            // 3. Luces Nocturnas
             const nightCanvas = document.createElement('canvas');
             nightCanvas.width = 4096; nightCanvas.height = 2048;
             const nctx = nightCanvas.getContext('2d');
@@ -177,24 +174,20 @@
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             document.body.appendChild(renderer.domElement);
 
-            // Reducción del brillo de la luz solar (de 2.2 a 1.5)
             const sun = new THREE.DirectionalLight(0xffffff, 1.5);
             sun.position.set(20, 10, 20);
             scene.add(sun);
 
-            // Reducción de la luz ambiental (de 0.5 a 0.2)
             const ambient = new THREE.AmbientLight(0x0a0a0f, 0.2);
             scene.add(ambient);
 
             const textures = generateHighResTextures();
 
-            // TIERRA
             const earthGeom = new THREE.SphereGeometry(5, 128, 128);
             const earthMat = new THREE.MeshPhongMaterial({
                 map: textures.day,
                 emissiveMap: textures.night,
                 emissive: new THREE.Color(0xffffaa),
-                // Reducción de la intensidad emisiva nocturna (de 0.7 a 0.4)
                 emissiveIntensity: 0.4,
                 shininess: 25,
                 specular: new THREE.Color(0x222222)
@@ -202,18 +195,16 @@
             earth = new THREE.Mesh(earthGeom, earthMat);
             scene.add(earth);
 
-            // NUBES
             const cloudGeom = new THREE.SphereGeometry(5.12, 128, 128);
             const cloudMat = new THREE.MeshStandardMaterial({
                 color: 0xffffff,
                 transparent: true,
-                opacity: 0.2, // Reducción de opacidad de nubes
+                opacity: 0.2,
                 blending: THREE.AdditiveBlending
             });
             clouds = new THREE.Mesh(cloudGeom, cloudMat);
             scene.add(clouds);
 
-            // ATMÓSFERA
             const atmoGeom = new THREE.SphereGeometry(5.4, 128, 128);
             const atmoMat = new THREE.ShaderMaterial({
                 vertexShader: `
@@ -226,7 +217,6 @@
                 fragmentShader: `
                     varying vec3 vNormal;
                     void main() {
-                        // Atenuación de la atmósfera (ajustando la potencia)
                         float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.0)), 5.0);
                         gl_FragColor = vec4(0.2, 0.5, 1.0, 1.0) * intensity;
                     }
@@ -238,7 +228,6 @@
             atmosphere = new THREE.Mesh(atmoGeom, atmoMat);
             scene.add(atmosphere);
 
-            // FONDO ESTRELLAS
             const starPositions = new Float32Array(20000 * 3);
             const starColors = new Float32Array(20000 * 3);
             for(let i=0; i<20000; i++) {
@@ -249,7 +238,6 @@
                 starPositions[i3] = r * Math.sin(phi) * Math.cos(theta);
                 starPositions[i3+1] = r * Math.sin(phi) * Math.sin(theta);
                 starPositions[i3+2] = r * Math.cos(phi);
-                // Estrellas un poco más tenues
                 const c = 0.5 + Math.random() * 0.4;
                 starColors[i3] = c; starColors[i3+1] = c; starColors[i3+2] = c + Math.random() * 0.1;
             }
@@ -259,17 +247,48 @@
             starSphere = new THREE.Points(sGeom, new THREE.PointsMaterial({ size: 1.0, vertexColors: true }));
             scene.add(starSphere);
 
-            // INTERACCIONES
-            window.addEventListener('mousedown', () => isDragging = true);
-            window.addEventListener('mouseup', () => isDragging = false);
-            window.addEventListener('mousemove', (e) => {
+            // MANEJO DE MOVIMIENTO (MOUSE + TOUCH)
+            function onStart(x, y) {
+                isDragging = true;
+                previousMousePosition = { x, y };
+            }
+
+            function onMove(x, y) {
                 if (isDragging) {
-                    earth.rotation.y += (e.clientX - previousMousePosition.x) * 0.003;
-                    earth.rotation.x += (e.clientY - previousMousePosition.y) * 0.003;
-                    clouds.rotation.y += (e.clientX - previousMousePosition.x) * 0.0035;
+                    const deltaX = x - previousMousePosition.x;
+                    const deltaY = y - previousMousePosition.y;
+                    
+                    earth.rotation.y += deltaX * 0.003;
+                    earth.rotation.x += deltaY * 0.003;
+                    clouds.rotation.y += deltaX * 0.0035;
+                    
+                    previousMousePosition = { x, y };
                 }
-                previousMousePosition = { x: e.clientX, y: e.clientY };
-            });
+            }
+
+            function onEnd() {
+                isDragging = false;
+            }
+
+            // Eventos Mouse
+            window.addEventListener('mousedown', (e) => onStart(e.clientX, e.clientY));
+            window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
+            window.addEventListener('mouseup', onEnd);
+
+            // Eventos Touch (Celular)
+            window.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    onStart(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: false });
+
+            window.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1) {
+                    onMove(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: false });
+
+            window.addEventListener('touchend', onEnd);
 
             window.addEventListener('wheel', (e) => {
                 camera.position.z = Math.max(7, Math.min(camera.position.z + e.deltaY * 0.02, 50));
