@@ -27,7 +27,7 @@
 <body>
     <div id="overlay">
         <h1 style="margin:0; font-size: 1.4rem; font-weight: 900;">LA BOMBONERA</h1>
-        <div class="label">Alberto J. Armando - Tribunas Unidas</div>
+        <div class="label">Modelo sin torres de luz</div>
     </div>
 
     <script>
@@ -157,21 +157,16 @@
                 stadium.add(mesh);
             }
 
-            // Alturas exactas para que estén pegadas
-            const h1 = 25; // Altura bandeja 1
-            const h2 = 25; // Altura bandeja 2
-            const h3 = 30; // Altura bandeja 3
-
-            // Bandeja 1: Azul (Base 0)
-            addTier(5, 25, h1, 0, COLOR_AZUL);   
-            // Bandeja 2: Amarilla (Base h1, pegada a la 1)
-            addTier(25, 45, h2, h1, COLOR_ORO); 
-            // Bandeja 3: Azul (Base h1 + h2, pegada a la 2)
-            addTier(45, 75, h3, h1 + h2, COLOR_AZUL);
-
+            const h1 = 25; 
+            const h2 = 25; 
+            const h3 = 30; 
             const totalH = h1 + h2 + h3;
 
-            // --- ESTRUCTURA EXTERIOR ---
+            addTier(5, 25, h1, 0, COLOR_AZUL);   
+            addTier(25, 45, h2, h1, COLOR_ORO); 
+            addTier(45, 75, h3, h1 + h2, COLOR_AZUL);
+
+            // --- ESTRUCTURA EXTERIOR (MUROS AZUL-AMARILLO-AZUL) ---
             const wallRadius = 80;
             const xPalcos = -fW/2 - 5;
             
@@ -211,13 +206,22 @@
                 const x = Math.cos(angle) * colRadius;
                 const z = Math.sin(angle) * colRadius;
                 if (x > xPalcos - 5) {
-                    const isYellow = (i % 4 === 0);
-                    const colGeo = new THREE.BoxGeometry(6, totalH + 5, 6);
-                    const colMat = new THREE.MeshStandardMaterial({ color: isYellow ? COLOR_ORO : COLOR_AZUL });
-                    const col = new THREE.Mesh(colGeo, colMat);
-                    col.position.set(x, (totalH + 5)/2, z);
-                    col.castShadow = true;
-                    stadium.add(col);
+                    const colGroup = new THREE.Group();
+                    
+                    const p1 = new THREE.Mesh(new THREE.BoxGeometry(6, totalH * 0.4, 6), new THREE.MeshStandardMaterial({color: COLOR_AZUL}));
+                    p1.position.y = (totalH * 0.4) / 2;
+                    colGroup.add(p1);
+
+                    const p2 = new THREE.Mesh(new THREE.BoxGeometry(6, totalH * 0.2, 6), new THREE.MeshStandardMaterial({color: COLOR_ORO}));
+                    p2.position.y = (totalH * 0.4) + (totalH * 0.2 / 2);
+                    colGroup.add(p2);
+
+                    const p3 = new THREE.Mesh(new THREE.BoxGeometry(6, totalH * 0.4 + 5, 6), new THREE.MeshStandardMaterial({color: COLOR_AZUL}));
+                    p3.position.y = (totalH * 0.6) + ((totalH * 0.4 + 5) / 2);
+                    colGroup.add(p3);
+
+                    colGroup.position.set(x, 0, z);
+                    stadium.add(colGroup);
                 }
             }
 
@@ -250,22 +254,6 @@
                 row.position.set(xPalcos - 2 + offsetHaciaCancha, 18 + (level * 16), 0);
                 stadium.add(row);
             }
-
-            const createTower = (x, z) => {
-                const tower = new THREE.Group();
-                const h = boxWallHeight + 50;
-                const pole = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 2.5, h), new THREE.MeshStandardMaterial({color: 0x555555}));
-                pole.position.y = h/2;
-                tower.add(pole);
-                const head = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 4), new THREE.MeshStandardMaterial({color: 0x333333}));
-                head.position.y = h;
-                tower.add(head);
-                tower.position.set(x, 0, z);
-                tower.lookAt(0, 0, 0);
-                stadium.add(tower);
-            };
-            createTower(135, 125); createTower(135, -125);
-            createTower(55, 195); createTower(55, -195);
 
             scene.add(stadium);
         }
