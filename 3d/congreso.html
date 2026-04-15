@@ -10,6 +10,7 @@
             overflow: hidden;
             background-color: #a3d8f4;
             font-family: 'Inter', sans-serif;
+            touch-action: none; /* Evita el scroll nativo para permitir la rotación táctil */
         }
         #ui-overlay {
             position: absolute;
@@ -50,6 +51,9 @@
             padding: 8px 20px;
             border-radius: 20px;
             z-index: 10;
+            text-align: center;
+            width: fit-content;
+            white-space: nowrap;
         }
         #canvas-container { width: 100vw; height: 100vh; }
     </style>
@@ -60,7 +64,7 @@
         <h1>Palacio del Congreso</h1>
     </div>
 
-    <div class="controls-hint">Orbitar: Clic Izquierdo • Zoom: Rueda • Desplazar: Clic Derecho</div>
+    <div class="controls-hint">Orbitar: Arrastrar • Zoom: Pellizcar/Rueda</div>
     <div id="canvas-container"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -71,6 +75,8 @@
         let targetRotationY = 0.5, targetRotationX = 0.3;
         let rotationY = 0.5, rotationX = 0.3;
         let zoom = 150;
+        let lastTouchX = 0;
+        let lastTouchY = 0;
 
         function init() {
             scene = new THREE.Scene();
@@ -168,7 +174,6 @@
             const columnCount = 8;
             for(let i = 0; i < columnCount; i++) {
                 const colX = (i / (columnCount - 1)) * columnSpan - (columnSpan / 2);
-                // Aumento de grosor de 0.45/0.5 a 0.7/0.75
                 const col = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.75, 12.5, 16), marbleMat);
                 col.position.set(colX, 14.75, 32); 
                 col.castShadow = true;
@@ -284,6 +289,8 @@
 
         window.onload = init;
         window.addEventListener('resize', onWindowResize);
+
+        // --- INTERACCIONES MOUSE ---
         document.addEventListener('mousedown', (e) => { if(e.button === 0) isMouseDown = true; });
         document.addEventListener('mouseup', () => isMouseDown = false);
         document.addEventListener('mousemove', (e) => {
@@ -294,6 +301,34 @@
         });
         document.addEventListener('wheel', (e) => {
             zoom = Math.max(80, Math.min(zoom + e.deltaY * 0.2, 800));
+        });
+
+        // --- INTERACCIONES TOUCH (CELULAR) ---
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isMouseDown = true;
+                lastTouchX = e.touches[0].clientX;
+                lastTouchY = e.touches[0].clientY;
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isMouseDown && e.touches.length === 1) {
+                const touchX = e.touches[0].clientX;
+                const touchY = e.touches[0].clientY;
+                const deltaX = touchX - lastTouchX;
+                const deltaY = touchY - lastTouchY;
+                
+                targetRotationY -= deltaX * 0.005;
+                targetRotationX = Math.max(0.1, Math.min(targetRotationX + deltaY * 0.005, 1.4));
+                
+                lastTouchX = touchX;
+                lastTouchY = touchY;
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', () => {
+            isMouseDown = false;
         });
     </script>
 </body>
