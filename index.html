@@ -47,11 +47,10 @@
                         radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
         }
 
-        /* DISEÑO DE TÍTULO ACTUALIZADO */
+        /* DISEÑO DE TÍTULO COMPACTO */
         .header-container {
             position: relative;
-            padding: 3rem 1rem;
-            margin-bottom: 2rem;
+            padding: 1.5rem 1rem 1rem 1rem; /* Reducido de 3rem */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -62,13 +61,12 @@
             background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 2rem 3rem;
-            border-radius: 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 1.5rem 2.5rem; /* Reducido de 2rem 3rem */
+            border-radius: 24px;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
             overflow: hidden;
         }
 
-        /* Brillo animado detrás del título */
         .title-box::before {
             content: '';
             position: absolute;
@@ -88,7 +86,7 @@
         }
 
         .glitch-title {
-            font-size: 3.5rem;
+            font-size: 3rem; /* Ligeramente más pequeño para compactar */
             font-weight: 800;
             background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
             -webkit-background-clip: text;
@@ -101,13 +99,13 @@
 
         .subtitle-tag {
             display: inline-block;
-            margin-top: 1rem;
-            padding: 0.25rem 1rem;
+            margin-top: 0.75rem; /* Reducido */
+            padding: 0.15rem 0.75rem;
             background: rgba(59, 130, 246, 0.1);
             border: 1px solid rgba(59, 130, 246, 0.3);
             border-radius: 99px;
             color: #60a5fa;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.1em;
@@ -161,23 +159,23 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        /* Navegación */
+        /* Navegación Compacta */
         .nav-container {
             background: rgba(30, 41, 59, 0.6);
-            padding: 4px;
-            border-radius: 14px;
+            padding: 3px;
+            border-radius: 12px;
             display: inline-flex;
             border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(5px);
         }
 
         .nav-btn {
-            padding: 8px 24px;
-            border-radius: 10px;
+            padding: 6px 20px;
+            border-radius: 9px;
             font-weight: 600;
             transition: all 0.3s ease;
             color: #94a3b8;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .nav-btn.active {
@@ -202,17 +200,18 @@
 
         /* Responsivo para el título */
         @media (max-width: 768px) {
-            .glitch-title { font-size: 2.2rem; }
-            .title-box { padding: 1.5rem 2rem; }
+            .glitch-title { font-size: 2rem; }
+            .title-box { padding: 1.25rem 1.5rem; }
+            .header-container { padding-top: 1rem; }
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-6">
     <div class="bg-overlay"></div>
     <div class="mesh-gradient"></div>
 
     <div class="max-w-7xl mx-auto">
-        <!-- Header con nuevo diseño -->
+        <!-- Header Compacto -->
         <header class="header-container">
             <div class="title-box text-center">
                 <h1 class="glitch-title">Proyectos de Sebas</h1>
@@ -220,8 +219,8 @@
             </div>
         </header>
 
-        <!-- Navegación -->
-        <nav class="flex justify-center mb-10">
+        <!-- Navegación más cerca -->
+        <nav class="flex justify-center mb-6">
             <div class="nav-container">
                 <button onclick="switchTab('juegos', this)" class="nav-btn active">Juegos</button>
                 <button onclick="switchTab('objetos', this)" class="nav-btn">Objetos 3D</button>
@@ -229,7 +228,7 @@
         </nav>
 
         <!-- Contenido Juegos -->
-        <main id="juegos" class="section-content active grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <main id="juegos" class="section-content active grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
             <a href="https://sebas1491.github.io/superliga-argentina/" target="_blank" class="project-card">
                 <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800" alt="Superliga" class="card-image">
                 <div class="card-overlay">
@@ -253,7 +252,7 @@
         </main>
 
         <!-- Contenido Objetos 3D -->
-        <main id="objetos" class="section-content grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <main id="objetos" class="section-content grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
             <a href="https://sebas1491.github.io/proyectos-2-sebas/3d/bombonera.html" target="_blank" class="project-card">
                 <img src="https://s48453.pcdn.co/es/wp-content/uploads/2025/09/la-bombonera-estadio-boca-juniors-historia-scaled.jpg.webp" alt="Bombonera" class="card-image" onerror="this.src='https://via.placeholder.com/400x250?text=La+Bombonera'">
                 <div class="card-overlay">
@@ -286,7 +285,7 @@
             </a>
         </main>
 
-        <footer class="mt-12 border-t border-slate-800 pt-6 text-center">
+        <footer class="mt-8 border-t border-slate-800 pt-4 text-center">
             <p class="text-slate-600 text-[10px] font-mono uppercase tracking-widest">
                 &copy; 2026 Proyectos de Seba
             </p>
