@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gran Derby Sebas - F1 Compact</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Roboto+Mono:wght@500&display=swap');
+
+        :root {
+            --asphalt: #1e293b;
+            --gold: #fbbf24;
+            --wood: #422006;
+            --red-f1: #ef4444;
+        }
+
+        body {
+            background-color: #020617;
+            color: white;
+            font-family: 'Oswald', sans-serif;
+            overflow: hidden; /* Evita el scroll global */
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-app-container {
+            height: 100%;
+            width: 100%;
+            max-height: 900px; 
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+        }
+
+        /* Estructura de la Pista Compacta */
+        .track-container {
+            background-color: var(--asphalt);
+            background-image: 
+                linear-gradient(90deg, transparent 95%, rgba(255,255,255,0.05) 95%),
+                linear-gradient(var(--asphalt) 50%, #1a1f2c 50%);
+            background-size: 40px 100%, 100% 4px;
+            border-top: 6px solid #334155;
+            border-bottom: 6px solid #334155;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+            flex-grow: 1; 
+            min-height: 0;
+        }
+
+        .track-moving-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background-image: repeating-linear-gradient(90deg, 
+                #ffffff 0px, #ffffff 40px, 
+                transparent 40px, transparent 80px);
+            background-size: 80px 6px;
+            background-repeat: repeat-x;
+            background-position: center;
+            opacity: 0.1;
+            z-index: 1;
+        }
+
+        .track-moving-bg.racing {
+            animation: move-track 0.3s linear infinite;
+        }
+
+        @keyframes move-track {
+            from { transform: translateX(0); }
+            to { transform: translateX(-80px); }
+        }
+
+        .lane {
+            flex: 1; 
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            position: relative;
+            display: flex;
+            align-items: center;
+            z-index: 2;
+            min-height: 50px;
+        }
+
+        .car {
+            position: absolute;
+            left: 20px;
+            width: 110px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: left 0.1s linear;
+        }
+
+        .engine-vibration {
+            animation: vibrate 0.05s infinite alternate;
+        }
+
+        @keyframes vibrate {
+            from { transform: translate(0, 0); }
+            to { transform: translate(1px, 0.5px); }
+        }
+
+        .car-name-tag {
+            font-size: 8px;
+            background: rgba(0,0,0,0.85);
+            color: var(--gold);
+            padding: 1px 6px;
+            border-radius: 3px;
+            white-space: nowrap;
+            text-transform: uppercase;
+            font-weight: 900;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            margin-top: 2px;
+            z-index: 10;
+        }
+
+        .finish-line-flag {
+            position: absolute;
+            right: -60px;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            background: repeating-conic-gradient(#fff 0 25%, #000 0 50%) 0 0/10px 10px;
+            transition: right 0.8s ease-out;
+            z-index: 5;
+        }
+
+        .wood-panel {
+            background: linear-gradient(135deg, #422006 0%, #251002 100%);
+            border: 3px solid #78350f;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+        }
+
+        .bet-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+        }
+
+        .bet-card.selected {
+            border-color: var(--red-f1);
+            background: #2d0a0a;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .f1-car-svg {
+            width: 90px;
+            height: 40px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-app-container">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
+            
+            <!-- CARRERA -->
+            <div class="lg:col-span-8 flex flex-col h-full space-y-3">
+                <header class="flex items-end justify-between px-2">
+                    <div>
+                        <h1 class="text-4xl md:text-6xl font-bold text-yellow-500 italic leading-none" style="font-family: 'Playfair Display'">
+                            Gran Derby Sebas
+                        </h1>
+                    </div>
+                </header>
+
+                <div class="track-container rounded-[1.5rem] border-x-[8px] border-wood" id="race-arena">
+                    <div class="track-moving-bg" id="moving-bg"></div>
+                    <div id="lanes-container" class="flex flex-col h-full"></div>
+                    <div class="finish-line-flag" id="finish-line"></div>
+                </div>
+            </div>
+
+            <!-- CONTROLES -->
+            <div class="lg:col-span-4 flex flex-col h-full space-y-4">
+                <!-- Saldo Compacto -->
+                <div class="wood-panel p-4 rounded-2xl text-center">
+                    <span class="text-yellow-600/60 uppercase text-[10px] font-black tracking-widest block">Fondos Disponibles</span>
+                    <div id="balance" class="text-4xl font-mono text-yellow-400">$1000</div>
+                </div>
+
+                <!-- Panel Apuestas Compacto -->
+                <div class="bg-slate-900/90 flex-grow p-4 rounded-2xl border border-slate-800 shadow-xl overflow-hidden flex flex-col">
+                    <h3 class="text-sm font-black mb-3 text-white uppercase italic border-b border-slate-800 pb-1 text-center">Configurar Apuesta</h3>
+                    
+                    <div class="flex items-center justify-between mb-4 px-2">
+                        <div id="bet-amount-display" class="font-mono text-3xl text-yellow-500">$100</div>
+                        <div class="flex gap-1">
+                            <button onclick="adjustBet(-50)" class="bg-slate-800 hover:bg-red-600 w-8 h-8 rounded-lg font-bold text-lg">-</button>
+                            <button onclick="adjustBet(50)" class="bg-slate-800 hover:bg-red-600 w-8 h-8 rounded-lg font-bold text-lg">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Selector con scroll interno si es necesario -->
+                    <div class="grid grid-cols-2 gap-2 mb-4 overflow-y-auto pr-1" id="car-selector" style="max-height: 250px;"></div>
+
+                    <div id="bet-status" class="mb-3 text-center"></div>
+
+                    <button id="start-race-btn" onclick="startRace()" disabled 
+                        class="w-full py-4 mt-auto bg-red-600 hover:bg-red-500 disabled:bg-slate-800 disabled:text-slate-600 rounded-xl font-black text-lg transition-all uppercase tracking-widest">
+                        ¡LARGADA!
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal Resultados -->
+    <div id="result-modal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center z-[200] p-4 backdrop-blur-xl">
+        <div class="wood-panel max-w-sm w-full p-8 rounded-[30px] text-center border-yellow-500/30">
+            <h2 id="modal-title" class="text-3xl font-black text-yellow-500 mb-2 italic">RESULTADO</h2>
+            <div id="winner-display-img" class="w-full h-24 flex items-center justify-center mb-2"></div>
+            <div id="winner-name-banner" class="text-lg font-black text-white uppercase tracking-widest mb-3 bg-black/40 py-2 rounded-lg"></div>
+            <p id="modal-msg" class="text-lg text-slate-300 mb-6"></p>
+            <button onclick="resetGame()" class="w-full py-4 bg-red-600 rounded-xl font-black text-xl hover:bg-red-500 transition-all uppercase">
+                Continuar
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function generateCarSVG(primary, secondary) {
+            const cleanId = primary.replace('#','');
+            return `
+            <svg class="f1-car-svg" viewBox="0 0 140 60" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="bodyGrad-${cleanId}" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:${primary};stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:white;stop-opacity:0.3" />
+                        <stop offset="100%" style="stop-color:${primary};stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect x="25" y="10" width="2" height="40" fill="#333" />
+                <rect x="95" y="12" width="2" height="36" fill="#333" />
+                <rect x="5" y="12" width="10" height="36" rx="1" fill="#111" />
+                <rect x="2" y="14" width="14" height="4" rx="1" fill="${secondary}" />
+                <rect x="2" y="42" width="14" height="4" rx="1" fill="${secondary}" />
+                <rect x="18" y="2" width="22" height="12" rx="3" fill="#000" />
+                <rect x="18" y="46" width="22" height="12" rx="3" fill="#000" />
+                <path d="M15 18 Q 45 12, 90 18 L 90 42 Q 45 48, 15 42 Z" fill="url(#bodyGrad-${cleanId})" />
+                <path d="M50 22 L 70 22 Q 80 30, 70 38 L 50 38 Z" fill="#111" />
+                <circle cx="62" cy="30" r="5" fill="#eee" />
+                <path d="M90 20 L 125 26 L 125 34 L 90 40 Z" fill="${primary}" />
+                <rect x="95" y="6" width="18" height="10" rx="2" fill="#000" />
+                <rect x="95" y="44" width="18" height="10" rx="2" fill="#000" />
+                <path d="M120 10 L 135 12 L 135 48 L 120 50 Z" fill="#111" />
+                <rect x="125" y="10" width="8" height="5" fill="${secondary}" />
+                <rect x="125" y="45" width="8" height="5" fill="${secondary}" />
+            </svg>`;
+        }
+
+        const TEAMS_DATA = [
+            { id: 0, name: "Escudería Rosso", primary: "#d70000", secondary: "#ffffff" },
+            { id: 1, name: "Silver Arrows", primary: "#a5a5a5", secondary: "#00d2be" },
+            { id: 2, name: "Bulls Racing", primary: "#001a3d", secondary: "#ffec00" },
+            { id: 3, name: "British Racing", primary: "#00352f", secondary: "#c4fb24" },
+            { id: 4, name: "Blue Alpine", primary: "#005aff", secondary: "#ff87bc" },
+            { id: 5, name: "Papaya Orange", primary: "#ff8700", secondary: "#000000" }
+        ];
+
+        let balance = 1000;
+        let selectedCarId = null;
+        let currentBetAmount = 100;
+        let isRacing = false;
+        const raceTimeMs = 7000; 
+
+        function init() {
+            const lanesContainer = document.getElementById('lanes-container');
+            const selector = document.getElementById('car-selector');
+            lanesContainer.innerHTML = '';
+            selector.innerHTML = '';
+
+            TEAMS_DATA.forEach(team => {
+                const lane = document.createElement('div');
+                lane.className = 'lane';
+                lane.innerHTML = `
+                    <div id="car-${team.id}" class="car">
+                        ${generateCarSVG(team.primary, team.secondary)}
+                        <span class="car-name-tag">${team.name}</span>
+                    </div>
+                `;
+                lanesContainer.appendChild(lane);
+
+                const btn = document.createElement('div');
+                btn.className = 'bet-card rounded-xl cursor-pointer border-2 border-transparent';
+                btn.onclick = () => selectCar(team.id);
+                btn.id = `selector-${team.id}`;
+                btn.innerHTML = `
+                    <div class="scale-[0.6]">${generateCarSVG(team.primary, team.secondary)}</div>
+                    <div class="text-[8px] font-black uppercase text-slate-400 mt-0">${team.name}</div>
+                `;
+                selector.appendChild(btn);
+            });
+            updateUI();
+        }
+
+        function adjustBet(amt) {
+            if (isRacing) return;
+            const next = currentBetAmount + amt;
+            if (next >= 50 && next <= balance) {
+                currentBetAmount = next;
+                updateUI();
+            }
+        }
+
+        function selectCar(id) {
+            if (isRacing) return;
+            selectedCarId = id;
+            document.querySelectorAll('.bet-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`selector-${id}`).classList.add('selected');
+            document.getElementById('start-race-btn').disabled = false;
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('balance').innerText = `$${balance}`;
+            document.getElementById('bet-amount-display').innerText = `$${currentBetAmount}`;
+            const status = document.getElementById('bet-status');
+            if (selectedCarId !== null) {
+                const team = TEAMS_DATA[selectedCarId];
+                status.innerHTML = `<p class="text-[10px] uppercase text-yellow-500 font-bold">Apostado a: ${team.name}</p>`;
+            } else {
+                status.innerHTML = `<p class="text-slate-500 text-[10px] uppercase font-bold">Elige un bólido</p>`;
+            }
+        }
+
+        function startRace() {
+            if (isRacing || selectedCarId === null) return;
+            isRacing = true;
+            balance -= currentBetAmount;
+            updateUI();
+            document.getElementById('start-race-btn').disabled = true;
+            
+            const movingBg = document.getElementById('moving-bg');
+            movingBg.classList.add('racing');
+
+            const arena = document.getElementById('race-arena');
+            const finishLine = document.getElementById('finish-line');
+            const arenaWidth = arena.offsetWidth;
+            const startTime = Date.now();
+            
+            const racers = TEAMS_DATA.map(t => ({
+                id: t.id,
+                name: t.name,
+                primary: t.primary,
+                secondary: t.secondary,
+                el: document.getElementById(`car-${t.id}`),
+                speedFactor: 0.88 + (Math.random() * 0.3), 
+                currentPos: 20
+            }));
+
+            racers.forEach(r => r.el.classList.add('engine-vibration'));
+
+            const raceInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const progress = elapsed / raceTimeMs;
+
+                if (progress > 0.9) finishLine.style.right = "0px";
+
+                racers.forEach(r => {
+                    const turbulence = Math.sin(elapsed / 300 + r.id) * 3;
+                    const targetX = 20 + (progress * (arenaWidth - 180) * r.speedFactor) + turbulence;
+                    const maxX = progress < 1 ? (arenaWidth - 140) : (arenaWidth + 300);
+                    r.currentPos = Math.min(targetX, maxX);
+                    r.el.style.left = `${r.currentPos}px`;
+                });
+
+                if (elapsed >= raceTimeMs) {
+                    clearInterval(raceInterval);
+                    movingBg.classList.remove('racing');
+                    racers.forEach(r => r.el.classList.remove('engine-vibration'));
+                    const winner = racers.reduce((prev, curr) => (curr.currentPos > prev.currentPos) ? curr : prev);
+                    setTimeout(() => finishGP(winner), 500);
+                }
+            }, 50);
+        }
+
+        function finishGP(winner) {
+            isRacing = false;
+            const isWin = winner.id === selectedCarId;
+            if (isWin) balance += currentBetAmount * 6;
+            document.getElementById('winner-display-img').innerHTML = generateCarSVG(winner.primary, winner.secondary);
+            document.getElementById('winner-name-banner').innerText = winner.name;
+            document.getElementById('modal-msg').innerText = isWin ? `¡Ganaste $${currentBetAmount * 6}!` : `Perdiste la apuesta.`;
+            document.getElementById('result-modal').classList.remove('hidden');
+        }
+
+        function resetGame() {
+            document.getElementById('result-modal').classList.add('hidden');
+            document.getElementById('finish-line').style.right = "-60px";
+            selectedCarId = null;
+            document.querySelectorAll('.bet-card').forEach(c => c.classList.remove('selected'));
+            init();
+        }
+
+        init();
+    </script>
+</body>
+</html>
