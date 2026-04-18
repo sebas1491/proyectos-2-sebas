@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sebas Slot´s - Edición Total</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@700&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --gold-finish: linear-gradient(135deg, #d97706 0%, #fcd34d 50%, #b45309 100%);
+            --bronze-case: linear-gradient(to right, #78350f, #d97706, #78350f);
+            --vfd-blue: #60a5fa;
+            /* Usamos vh para que el tamaño dependa directamente de la pantalla */
+            --machine-height: 94vh;
+            --machine-width: calc(var(--machine-height) * 0.7);
+        }
+
+        body {
+            background-color: #000;
+            color: white;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Oswald', sans-serif;
+            position: relative;
+        }
+
+        /* Fondo del Escenario */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                              url('https://images.unsplash.com/photo-1596838132731-3301c3fd4317?fm=jpg&q=60&w=3000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            filter: blur(10px);
+            z-index: -1;
+            transform: scale(1.1);
+        }
+
+        .main-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .machine-body {
+            width: var(--machine-width);
+            height: var(--machine-height);
+            background: #3e1602;
+            border-radius: 5vh 5vh 3vh 3vh;
+            padding: 2.5vh;
+            position: relative;
+            box-shadow: 0 5vh 10vh rgba(0,0,0,1), inset 0 0.5vh 3vh rgba(255,255,255,0.3);
+            border: 1.2vh solid #b45309;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; 
+        }
+
+        .crown {
+            position: absolute;
+            top: -6vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 18vh;
+            height: 8vh;
+            background: var(--gold-finish);
+            clip-path: polygon(20% 100%, 50% 0%, 80% 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 0.4vh solid white;
+            z-index: 10;
+        }
+
+        .marquee {
+            height: 18%;
+            background: #1a0505;
+            border: 0.8vh solid #5d2b06;
+            border-radius: 4vh 4vh 1vh 1vh;
+            margin-bottom: 3%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 5vh rgba(0,0,0,1);
+            text-align: center;
+        }
+
+        .marquee h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 8vh;
+            color: #fff;
+            text-shadow: 0 0 1vh #fca5a5, 0 0 3vh #ef4444;
+            transform: rotate(-1deg);
+        }
+
+        .reel-frame {
+            background: #000;
+            padding: 3% 2%;
+            border: 1.5vh solid #5d2b06;
+            border-radius: 2vh;
+            display: flex;
+            justify-content: center;
+            gap: 1.5vh;
+            box-shadow: inset 0 0 8vh rgba(0,0,0,1);
+            height: 35%;
+        }
+
+        .reel-window {
+            flex: 1;
+            height: 100%;
+            background: linear-gradient(to bottom, #f2f2f2, #ffffff 50%, #f2f2f2);
+            border-radius: 1.5vh;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 4vh rgba(0,0,0,0.25);
+            border: 0.2vh solid #aaa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reel-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, 
+                rgba(0,0,0,0.6) 0%, 
+                transparent 25%, 
+                transparent 75%, 
+                rgba(0,0,0,0.6) 100%);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .symbol {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5vh;
+        }
+
+        .symbol img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .button-shelf {
+            margin-top: 3%;
+            background: var(--bronze-case);
+            padding: 2vh;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 1.5vh;
+            box-shadow: 0 1vh 0 #220b00;
+        }
+
+        .func-btn {
+            width: 12%;
+            height: 5vh;
+            background: #fff;
+            border-radius: 0.8vh;
+            box-shadow: 0 0.5vh 0 #94a3b8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e293b;
+            font-size: 1.6vh;
+            font-weight: 900;
+        }
+
+        .spin-btn-red {
+            width: 10vh;
+            height: 10vh;
+            background: radial-gradient(circle at 30% 30%, #ef4444, #7f1d1d);
+            border-radius: 50%;
+            border: 0.8vh solid #451a03;
+            box-shadow: 0 1vh 0 #000;
+            cursor: pointer;
+        }
+
+        .bottom-panel {
+            margin-top: 4%;
+            flex-grow: 1;
+            background: #140202;
+            border: 0.6vh solid #b45309;
+            border-radius: 2vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .bottom-panel h2 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 6vh;
+            color: #fff;
+            text-shadow: 0 0 1vh #f87171, 0 0 4vh #ef4444;
+            margin-bottom: 1vh;
+        }
+
+        .vfd-screen {
+            background: #000;
+            width: 85%;
+            padding: 1.5vh;
+            border-radius: 1vh;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--vfd-blue);
+            text-align: center;
+            border: 0.3vh solid #333;
+            font-size: 2.2vh;
+        }
+
+        .lever-system {
+            width: 10vh;
+            height: 50vh;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .lever-mount {
+            width: 8vh;
+            height: 12vh;
+            background: var(--gold-finish);
+            position: absolute;
+            bottom: 15vh;
+            border-radius: 0 4vh 4vh 0;
+        }
+
+        .lever-shaft {
+            width: 3vh;
+            height: 35vh;
+            background: linear-gradient(to right, #aaa, #fff, #aaa);
+            position: absolute;
+            bottom: 18vh;
+            left: 3vh;
+            border-radius: 1.5vh;
+            transform-origin: bottom center;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .lever-shaft.pulled { transform: rotateX(80deg) translateY(12vh); }
+
+        .lever-ball {
+            width: 12vh;
+            height: 12vh;
+            background: radial-gradient(circle at 35% 35%, #ef4444 0%, #4a0000 100%);
+            border-radius: 50%;
+            position: absolute;
+            top: -10vh;
+            left: -4.5vh;
+            box-shadow: 0 3vh 6vh rgba(0,0,0,0.8), inset 2vh 2vh 4vh rgba(255,255,255,0.4);
+        }
+
+        .blur-fx { filter: blur(10px) brightness(0.9); opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="machine-body">
+            <div class="crown"></div>
+            
+            <div class="marquee">
+                <h1>Sebas Slot´s</h1>
+            </div>
+
+            <div class="reel-frame">
+                <div class="reel-window">
+                    <div class="reel-overlay"></div>
+                    <div id="reel-0" class="symbol"></div>
+                </div>
+                <div class="reel-window">
+                    <div class="reel-overlay"></div>
+                    <div id="reel-1" class="symbol"></div>
+                </div>
+                <div class="reel-window">
+                    <div class="reel-overlay"></div>
+                    <div id="reel-2" class="symbol"></div>
+                </div>
+            </div>
+
+            <div class="button-shelf">
+                <div class="func-btn" onclick="toggleAuto()" id="btn-auto">AUTO</div>
+                <div class="func-btn" onclick="changeBet(-10)">-10</div>
+                <div class="func-btn" onclick="changeBet(10)">+10</div>
+                <div class="func-btn" onclick="maxBet()">MAX</div>
+                <div class="spin-btn-red" onclick="handleSpin()"></div>
+            </div>
+
+            <div class="bottom-panel">
+                <h2>Colts</h2>
+                <div class="vfd-screen" id="vfd-main">SISTEMA OK - APUESTA: 10</div>
+                <div class="mt-2 text-blue-300 text-xl" id="vfd-credits">CREDITOS: 500</div>
+            </div>
+        </div>
+
+        <div class="lever-system" onclick="handleSpin()">
+            <div class="lever-mount"></div>
+            <div id="lever-stick" class="lever-shaft">
+                <div class="lever-ball"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SYMBOLS_DATA = [
+            { name: '7', url: 'https://t4.ftcdn.net/jpg/16/65/00/67/360_F_1665006709_t3N5fsZ7Hwce4NaGst6zw3bW1DrZLyuG.jpg' },
+            { name: 'campana', url: 'https://em-content.zobj.net/source/apple/271/bell_1f514.png' },
+            { name: 'estrella', url: 'https://w7.pngwing.com/pngs/272/683/png-transparent-emoji-domain-star-yellow-emojipedia-emoji-blue-orange-color.png' },
+            { name: 'limon', url: 'https://em-content.zobj.net/source/apple/118/lemon_1f34b.png' },
+            { name: 'uva', url: 'https://img.icons8.com/emoji/1200/grapes-emoji.jpg' },
+            { name: 'diamante', url: 'https://em-content.zobj.net/source/apple/81/gem-stone_1f48e.png' },
+            { name: 'cereza', url: 'https://em-content.zobj.net/source/apple/81/cherries_1f352.png' }
+        ];
+        
+        let credits = 500;
+        let bet = 10;
+        let isSpinning = false;
+        let autoMode = false;
+
+        window.onload = () => {
+            for(let i=0; i<3; i++) {
+                setReelSymbol(i, SYMBOLS_DATA[0]);
+            }
+        };
+
+        function setReelSymbol(id, symbol, blur = false) {
+            const el = document.getElementById(`reel-${id}`);
+            el.innerHTML = `<img src="${symbol.url}" alt="${symbol.name}" class="${blur ? 'blur-fx' : ''}">`;
+        }
+
+        function updateDisplay(msg) {
+            if (msg) document.getElementById('vfd-main').innerText = msg;
+            document.getElementById('vfd-credits').innerText = `CREDITOS: ${credits}`;
+        }
+
+        function changeBet(val) {
+            if (isSpinning) return;
+            if (bet + val >= 10 && bet + val <= credits) {
+                bet += val;
+                updateDisplay(`APUESTA: ${bet}`);
+            }
+        }
+
+        function maxBet() {
+            if (isSpinning) return;
+            bet = Math.min(credits, 100);
+            updateDisplay(`MAX BET: ${bet}`);
+            handleSpin();
+        }
+
+        function toggleAuto() {
+            autoMode = !autoMode;
+            document.getElementById('btn-auto').classList.toggle('bg-yellow-400', autoMode);
+            if (autoMode && !isSpinning) handleSpin();
+        }
+
+        function handleSpin() {
+            if (isSpinning || credits < bet) return;
+            const stick = document.getElementById('lever-stick');
+            stick.classList.add('pulled');
+            setTimeout(() => stick.classList.remove('pulled'), 600);
+            startSpin();
+        }
+
+        async function startSpin() {
+            isSpinning = true;
+            credits -= bet;
+            updateDisplay("¡SUERTE!");
+            const results = [];
+            const tasks = [];
+            for (let i = 0; i < 3; i++) {
+                const res = SYMBOLS_DATA[Math.floor(Math.random() * SYMBOLS_DATA.length)];
+                results.push(res);
+                tasks.push(animateReel(i, res));
+            }
+            await Promise.all(tasks);
+            checkWin(results);
+            isSpinning = false;
+            if (autoMode) setTimeout(handleSpin, 1500);
+        }
+
+        function animateReel(id, target) {
+            return new Promise(resolve => {
+                const duration = 1000 + (id * 400);
+                const start = Date.now();
+                const loop = setInterval(() => {
+                    const elapsed = Date.now() - start;
+                    if (elapsed >= duration) {
+                        clearInterval(loop);
+                        setReelSymbol(id, target, false);
+                        resolve();
+                    } else {
+                        const randomSym = SYMBOLS_DATA[Math.floor(Math.random() * SYMBOLS_DATA.length)];
+                        setReelSymbol(id, randomSym, true);
+                    }
+                }, 80);
+            });
+        }
+
+        function checkWin(res) {
+            if (res[0].name === res[1].name && res[1].name === res[2].name) {
+                let multiplier = 20;
+                if (res[0].name === '7') multiplier = 100;
+                const win = bet * multiplier;
+                credits += win;
+                updateDisplay(`¡GANASTE: +${win}!`);
+            } else {
+                updateDisplay(`LISTO - APUESTA: ${bet}`);
+            }
+        }
+    </script>
+</body>
+</html>
