@@ -47,15 +47,70 @@
                         radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
         }
 
-        /* Cuadro de título translúcido */
+        /* DISEÑO DE TÍTULO ACTUALIZADO */
+        .header-container {
+            position: relative;
+            padding: 3rem 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .title-box {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(10px);
+            position: relative;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1.5rem 2rem;
-            border-radius: 24px;
+            padding: 2rem 3rem;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        /* Brillo animado detrás del título */
+        .title-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, var(--primary), transparent, var(--accent), transparent);
+            animation: rotate 6s linear infinite;
+            opacity: 0.2;
+            z-index: -1;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .glitch-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+            margin: 0;
+            line-height: 1;
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
+        }
+
+        .subtitle-tag {
             display: inline-block;
-            margin-bottom: 1.5rem;
+            margin-top: 1rem;
+            padding: 0.25rem 1rem;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 99px;
+            color: #60a5fa;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         /* Tarjetas de proyecto */
@@ -145,13 +200,10 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .glitch-title {
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            background: linear-gradient(to right, #60a5fa, #34d399);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 900;
+        /* Responsivo para el título */
+        @media (max-width: 768px) {
+            .glitch-title { font-size: 2.2rem; }
+            .title-box { padding: 1.5rem 2rem; }
         }
     </style>
 </head>
@@ -160,18 +212,16 @@
     <div class="mesh-gradient"></div>
 
     <div class="max-w-7xl mx-auto">
-        <!-- Header ajustado más arriba -->
-        <header class="text-center mt-2">
-            <div class="title-box">
-                <h1 class="text-3xl md:text-5xl mb-1 glitch-title">Proyectos de Sebas</h1>
-                <p class="text-slate-300 font-light text-xs md:text-sm opacity-80">
-                    Juan Sebastian Olivera
-                </p>
+        <!-- Header con nuevo diseño -->
+        <header class="header-container">
+            <div class="title-box text-center">
+                <h1 class="glitch-title">Proyectos de Sebas</h1>
+                <div class="subtitle-tag">Juan Sebastian Olivera</div>
             </div>
         </header>
 
         <!-- Navegación -->
-        <nav class="flex justify-center mb-8">
+        <nav class="flex justify-center mb-10">
             <div class="nav-container">
                 <button onclick="switchTab('juegos', this)" class="nav-btn active">Juegos</button>
                 <button onclick="switchTab('objetos', this)" class="nav-btn">Objetos 3D</button>
