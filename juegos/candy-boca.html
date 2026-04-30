@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boca Juniors - Candy Crush</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Poppins:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #003087;
+            background-image: url('https://images.pexels.com/photos/61135/pexels-photo-61135.jpeg?cs=srgb&dl=pexels-jsalamanca-61135.jpg&fm=jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            touch-action: none;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .title-font {
+            font-family: 'Luckiest Guy', cursive;
+            color: #ffc72c;
+            text-shadow: 3px 3px 0px rgba(0, 48, 135, 0.6);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 4px;
+            background: rgba(0, 48, 135, 0.4);
+            border: 6px solid #ffc72c;
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+            position: relative;
+            backdrop-filter: blur(4px);
+        }
+
+        .grid-wrapper {
+            padding: 8px;
+            background: rgba(0, 48, 135, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255, 199, 44, 0.3);
+            backdrop-filter: blur(2px);
+        }
+
+        .candy {
+            width: 100%;
+            padding-top: 100%;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.15s ease-out;
+            user-select: none;
+        }
+
+        .candy:active {
+            transform: scale(0.85);
+        }
+
+        .candy-inner {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));
+            pointer-events: none;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .popping {
+            animation: pop 0.3s forwards ease-in;
+        }
+
+        .selected {
+            background: rgba(255, 199, 44, 0.4);
+            outline: 4px solid #ffc72c;
+            border-radius: 12px;
+            z-index: 20;
+        }
+
+        .ui-panel {
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .text-blue-boca {
+            color: #003087;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.3);
+        }
+
+        .btn-reset-small {
+            background: rgba(0, 48, 135, 0.6);
+            color: #ffc72c;
+            border: 1px solid rgba(255, 199, 44, 0.4);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            font-weight: 800;
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-reset-small:hover {
+            background: #ffc72c;
+            color: #003087;
+        }
+
+        .btn-boca-modal {
+            background: #003087;
+            color: #ffc72c;
+            border: 2px solid #ffc72c;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+
+        .empty-slot {
+            opacity: 0;
+        }
+
+        .stat-label {
+            text-[9px] sm:text-[10px] uppercase block opacity-80 leading-none mb-1;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4">
+
+    <!-- UI Superior -->
+    <div class="mb-4 text-center">
+        <h1 class="text-4xl title-font mb-2 tracking-tighter">BOCA CRUSH</h1>
+        <div class="inline-flex items-center gap-3 sm:gap-5 justify-center ui-panel py-1 px-4 sm:px-6 rounded-xl">
+            <!-- Nivel -->
+            <div class="text-blue-boca font-extrabold">
+                <span class="text-[10px] uppercase block opacity-80 leading-none">Nivel</span>
+                <span id="level" class="text-xl sm:text-2xl">1</span>
+            </div>
+            <!-- Puntos -->
+            <div class="font-extrabold text-blue-boca border-l border-white/30 pl-3 sm:pl-5">
+                <span class="text-[10px] uppercase block opacity-80 leading-none">Goles</span>
+                <span id="score" class="text-xl sm:text-2xl">0000</span>
+            </div>
+            <!-- Tiempo -->
+            <div class="text-yellow-500 font-extrabold border-l border-white/30 pl-3 sm:pl-5">
+                <span class="text-[10px] uppercase block opacity-80 leading-none">Tiempo</span>
+                <span id="timer" class="text-xl sm:text-2xl">01:00</span>
+            </div>
+            <!-- Movimientos -->
+            <div class="text-yellow-600 font-extrabold border-l border-white/30 pl-3 sm:pl-5">
+                <span class="text-[10px] uppercase block opacity-80 leading-none">Movs</span>
+                <span id="moves" class="text-xl sm:text-2xl">20</span>
+            </div>
+            <!-- Botón Reiniciar -->
+            <div class="border-l border-white/30 pl-3 sm:pl-5">
+                <button onclick="resetGame()" class="btn-reset-small active:scale-95">
+                    Reiniciar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tablero principal -->
+    <div class="grid-wrapper">
+        <div id="grid" class="grid-container w-[85vw] max-w-[450px] aspect-square">
+            <!-- Los escudos se generarán aquí -->
+        </div>
+    </div>
+
+    <!-- Modal de Fin de Juego -->
+    <div id="modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white/80 backdrop-blur-lg rounded-2xl p-6 max-w-xs w-full text-center border-4 border-yellow-500/50 shadow-2xl">
+            <h2 id="modal-title" class="text-2xl title-font text-blue-900 mb-2">¡FINAL DEL PARTIDO!</h2>
+            <p id="modal-text" class="text-gray-800 mb-4 font-bold text-lg">Goles: 0</p>
+            <button onclick="closeModal()" class="w-full btn-boca-modal py-3 rounded-lg shadow-md">
+                Jugar Revancha
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const gridElement = document.getElementById('grid');
+        const scoreElement = document.getElementById('score');
+        const movesElement = document.getElementById('moves');
+        const levelElement = document.getElementById('level');
+        const timerElement = document.getElementById('timer');
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        
+        const width = 8;
+        const bocaLogos = [
+            'https://upload.wikimedia.org/wikipedia/commons/c/c9/Boca_escudo.png',
+            'https://images.seeklogo.com/logo-png/64/2/club-atletico-boca-juniors-de-la-ciudad-autonoma-logo-png_seeklogo-644003.png',
+            'https://upload.wikimedia.org/wikipedia/commons/5/5f/Boca_jrs_logo_1920.png',
+            'https://upload.wikimedia.org/wikipedia/commons/0/07/Boca_escudo_1911.png',
+            'https://upload.wikimedia.org/wikipedia/commons/c/c3/Escudo_del_Club_Atl%C3%A9tico_Boca_Juniors_2007.png',
+            'https://upload.wikimedia.org/wikipedia/commons/9/9c/Escudo_del_Club_Atl%C3%A9tico_Boca_Juniors_1975.png',
+            'https://upload.wikimedia.org/wikipedia/commons/6/6a/Boca_jrs_logo_1970.png'
+        ];
+        
+        let squares = [];
+        let score = 0;
+        let moves = 20;
+        let level = 1;
+        let timeLeft = 60; // 60 segundos
+        let timerInterval;
+        let squareIdBeingDragged;
+        let squareIdBeingReplaced;
+        let isGameOver = false;
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (isGameOver) return;
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    endGame("¡SE ACABÓ EL TIEMPO!");
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerElement.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function createBoard() {
+            gridElement.innerHTML = '';
+            squares = [];
+            isGameOver = false;
+            for (let i = 0; i < width * width; i++) {
+                const square = document.createElement('div');
+                square.setAttribute('draggable', true);
+                square.setAttribute('id', i);
+                square.classList.add('candy');
+                
+                let randomLogoIndex = Math.floor(Math.random() * bocaLogos.length);
+                square.dataset.logoIndex = randomLogoIndex;
+                
+                const inner = document.createElement('div');
+                inner.classList.add('candy-inner');
+                inner.style.backgroundImage = `url('${bocaLogos[randomLogoIndex]}')`;
+                square.appendChild(inner);
+
+                square.addEventListener('dragstart', dragStart);
+                square.addEventListener('dragend', dragEnd);
+                square.addEventListener('dragover', dragOver);
+                square.addEventListener('dragenter', dragEnter);
+                square.addEventListener('dragleave', dragLeave);
+                square.addEventListener('drop', dragDrop);
+
+                square.addEventListener('touchstart', touchStart, {passive: false});
+                square.addEventListener('touchend', touchEnd, {passive: false});
+
+                gridElement.appendChild(square);
+                squares.push(square);
+            }
+            checkInitialBoard();
+            startTimer();
+        }
+
+        function dragStart() {
+            if (isGameOver) return;
+            squareIdBeingDragged = parseInt(this.id);
+            this.classList.add('selected');
+        }
+
+        function dragOver(e) { e.preventDefault(); }
+        function dragEnter(e) { e.preventDefault(); }
+        function dragLeave() {}
+
+        function dragDrop() {
+            squareIdBeingReplaced = parseInt(this.id);
+        }
+
+        function dragEnd() {
+            this.classList.remove('selected');
+            if (squareIdBeingReplaced === undefined || isGameOver) return;
+
+            let validMoves = [
+                squareIdBeingDragged - 1,
+                squareIdBeingDragged - width,
+                squareIdBeingDragged + 1,
+                squareIdBeingDragged + width
+            ];
+
+            if (validMoves.includes(squareIdBeingReplaced)) {
+                swapCandies(squareIdBeingDragged, squareIdBeingReplaced);
+            }
+            squareIdBeingReplaced = undefined;
+        }
+
+        let touchStartX, touchStartY;
+        function touchStart(e) {
+            if (isGameOver) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            squareIdBeingDragged = parseInt(this.id);
+            this.classList.add('selected');
+        }
+
+        function touchEnd(e) {
+            if (isGameOver) return;
+            e.preventDefault();
+            this.classList.remove('selected');
+            const touch = e.changedTouches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+
+            let targetId = -1;
+            if (Math.abs(deltaX) > 20 || Math.abs(deltaY) > 20) {
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    targetId = deltaX > 0 ? squareIdBeingDragged + 1 : squareIdBeingDragged - 1;
+                } else {
+                    targetId = deltaY > 0 ? squareIdBeingDragged + width : squareIdBeingDragged - width;
+                }
+            }
+
+            if (targetId >= 0 && targetId < 64) {
+                if (squareIdBeingDragged % width === 0 && targetId === squareIdBeingDragged - 1) return;
+                if (squareIdBeingDragged % width === width - 1 && targetId === squareIdBeingDragged + 1) return;
+                squareIdBeingReplaced = targetId;
+                swapCandies(squareIdBeingDragged, squareIdBeingReplaced);
+            }
+        }
+
+        function swapCandies(id1, id2) {
+            if (moves <= 0 || isGameOver) return;
+            let index1 = squares[id1].dataset.logoIndex;
+            let index2 = squares[id2].dataset.logoIndex;
+            updateCandyLogo(id1, index2);
+            updateCandyLogo(id2, index1);
+
+            if (checkMatches()) {
+                moves--;
+                movesElement.innerText = moves;
+                processMatches();
+            } else {
+                setTimeout(() => {
+                    updateCandyLogo(id1, index1);
+                    updateCandyLogo(id2, index2);
+                }, 250);
+            }
+            if (moves <= 0) setTimeout(() => endGame("¡SIN MOVIMIENTOS!"), 1000);
+        }
+
+        function updateCandyLogo(index, logoIndex) {
+            if (index < 0 || index >= 64) return;
+            squares[index].dataset.logoIndex = logoIndex;
+            const inner = squares[index].querySelector('.candy-inner');
+            if (logoIndex === 'empty') {
+                inner.classList.add('empty-slot');
+                inner.style.backgroundImage = 'none';
+            } else {
+                inner.classList.remove('empty-slot');
+                inner.style.backgroundImage = `url('${bocaLogos[logoIndex]}')`;
+            }
+        }
+
+        function checkMatches() {
+            for (let i = 0; i < 64; i++) {
+                let color = squares[i].dataset.logoIndex;
+                if (color === 'empty') continue;
+                if (i % width < width - 2) {
+                    if (squares[i+1].dataset.logoIndex === color && squares[i+2].dataset.logoIndex === color) return true;
+                }
+            }
+            for (let i = 0; i < 48; i++) {
+                let color = squares[i].dataset.logoIndex;
+                if (color === 'empty') continue;
+                if (squares[i+width].dataset.logoIndex === color && squares[i+width*2].dataset.logoIndex === color) return true;
+            }
+            return false;
+        }
+
+        function processMatches() {
+            let toRemove = new Set();
+            for (let i = 0; i < 64; i++) {
+                let color = squares[i].dataset.logoIndex;
+                if (color === 'empty') continue;
+                if (i % width < width - 2) {
+                    if (squares[i+1].dataset.logoIndex === color && squares[i+2].dataset.logoIndex === color) {
+                        toRemove.add(i); toRemove.add(i+1); toRemove.add(i+2);
+                    }
+                }
+            }
+            for (let i = 0; i < 48; i++) {
+                let color = squares[i].dataset.logoIndex;
+                if (color === 'empty') continue;
+                if (squares[i+width].dataset.logoIndex === color && squares[i+width*2].dataset.logoIndex === color) {
+                    toRemove.add(i); toRemove.add(i+width); toRemove.add(i+width*2);
+                }
+            }
+
+            if (toRemove.size > 0) {
+                score += toRemove.size * 10;
+                scoreElement.innerText = score.toString().padStart(4, '0');
+                
+                // Sistema de Niveles: Cada 500 puntos sube de nivel
+                let newLevel = Math.floor(score / 500) + 1;
+                if (newLevel > level) {
+                    level = newLevel;
+                    levelElement.innerText = level;
+                    timeLeft += 10; // Bonus de tiempo por subir nivel
+                    moves += 5;     // Bonus de movimientos por subir nivel
+                    movesElement.innerText = moves;
+                }
+
+                toRemove.forEach(index => squares[index].querySelector('.candy-inner').classList.add('popping'));
+                setTimeout(() => {
+                    toRemove.forEach(index => {
+                        updateCandyLogo(index, 'empty');
+                        squares[index].querySelector('.candy-inner').classList.remove('popping');
+                    });
+                    setTimeout(moveDown, 200);
+                }, 300);
+            }
+        }
+
+        function moveDown() {
+            let changed = false;
+            for (let i = 0; i < 56; i++) {
+                if (squares[i + width].dataset.logoIndex === 'empty' && squares[i].dataset.logoIndex !== 'empty') {
+                    updateCandyLogo(i + width, squares[i].dataset.logoIndex);
+                    updateCandyLogo(i, 'empty');
+                    changed = true;
+                }
+            }
+            for (let i = 0; i < width; i++) {
+                if (squares[i].dataset.logoIndex === 'empty') {
+                    updateCandyLogo(i, Math.floor(Math.random() * bocaLogos.length));
+                    changed = true;
+                }
+            }
+            if (changed) setTimeout(moveDown, 80);
+            else if (checkMatches()) setTimeout(processMatches, 100);
+        }
+
+        function checkInitialBoard() {
+            while (checkMatches()) {
+                for (let i = 0; i < 64; i++) updateCandyLogo(i, Math.floor(Math.random() * bocaLogos.length));
+            }
+        }
+
+        function endGame(reason) {
+            if (isGameOver) return;
+            isGameOver = true;
+            clearInterval(timerInterval);
+            modalTitle.innerText = reason || "¡FINAL DEL PARTIDO!";
+            document.getElementById('modal-text').innerText = `Nivel alcanzado: ${level}\nGoles totales: ${score}`;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            resetGame();
+        }
+
+        function resetGame() {
+            score = 0;
+            moves = 20;
+            level = 1;
+            timeLeft = 60;
+            isGameOver = false;
+            scoreElement.innerText = "0000";
+            movesElement.innerText = "20";
+            levelElement.innerText = "1";
+            updateTimerDisplay();
+            createBoard();
+        }
+
+        window.onload = createBoard;
+    </script>
+</body>
+</html>
